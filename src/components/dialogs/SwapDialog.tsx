@@ -8,19 +8,29 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { ArrowDownUp } from 'lucide-react';
+import { ArrowDownUp, RefreshCw } from 'lucide-react';
+import { useCryptoRates } from '@/hooks/useCryptoRates';
 
 interface SwapDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
+const AVAILABLE_CRYPTOS = [
+  { symbol: 'BTC', name: 'Bitcoin' },
+  { symbol: 'ETH', name: 'Ethereum' },
+  { symbol: 'USDT', name: 'Tether' },
+  { symbol: 'BNB', name: 'BNB' },
+];
+
 export function SwapDialog({ open, onOpenChange }: SwapDialogProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [fromWalletId, setFromWalletId] = useState('');
-  const [toWalletId, setToWalletId] = useState('');
+  const [fromSymbol, setFromSymbol] = useState('');
+  const [toSymbol, setToSymbol] = useState('');
   const [amount, setAmount] = useState('');
+
+  const { data: cryptoRates, refetch: refetchRates, isRefetching } = useCryptoRates();
 
   const { data: wallets } = useQuery({
     queryKey: ['wallets', user?.id],
@@ -36,53 +46,79 @@ export function SwapDialog({ open, onOpenChange }: SwapDialogProps) {
     enabled: !!user && open,
   });
 
-  // Mock exchange rates (in production, fetch from real API)
-  const getExchangeRate = (fromSymbol: string, toSymbol: string) => {
-    const rates: Record<string, number> = {
-      BTC: 96000,
-      ETH: 3180,
-      USDT: 1,
-      BNB: 936,
-    };
-    // Convert from source currency to USD, then to target currency
-    return rates[fromSymbol] / rates[toSymbol];
+  const getOrCreateWallet = async (symbol: string) => {
+    let wallet = wallets?.find(w => w.asset_symbol === symbol);
+    
+    if (!wallet) {
+      const crypto = AVAILABLE_CRYPTOS.find(c => c.symbol === symbol);
+      if (!crypto) throw new Error('Invalid cryptocurrency');
+
+      const { data: newWallet, error } = await supabase
+        .from('wallets')
+        .insert({
+          user_id: user?.id,
+          asset_symbol: symbol,
+          asset_name: crypto.name,
+          balance: 0,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      wallet = newWallet;
+    }
+
+    return wallet;
   };
 
   const swapMutation = useMutation({
     mutationFn: async () => {
-      if (!fromWalletId || !toWalletId || !amount) {
+      if (!fromSymbol || !toSymbol || !amount) {
         throw new Error('Please fill in all fields');
       }
 
-      const fromWallet = wallets?.find(w => w.id === fromWalletId);
-      const toWallet = wallets?.find(w => w.id === toWalletId);
+      if (fromSymbol === toSymbol) {
+        throw new Error('Cannot swap the same currency');
+      }
 
-      if (!fromWallet || !toWallet) throw new Error('Invalid wallets');
+      if (!cryptoRates) {
+        throw new Error('Exchange rates not available');
+      }
+
+      const fromWallet = wallets?.find(w => w.asset_symbol === fromSymbol);
+      if (!fromWallet) {
+        throw new Error('You do not have a wallet for this currency');
+      }
+
       if (Number(amount) > Number(fromWallet.balance)) {
         throw new Error('Insufficient balance');
       }
 
-      const exchangeRate = getExchangeRate(fromWallet.asset_symbol, toWallet.asset_symbol);
+      const exchangeRate = (cryptoRates[fromSymbol] || 0) / (cryptoRates[toSymbol] || 1);
       const toAmount = Number(amount) * exchangeRate;
 
-      // Update balances
+      // Get or create destination wallet
+      const toWallet = await getOrCreateWallet(toSymbol);
+
+      // Update from wallet balance
       await supabase.from('wallets').update({
         balance: Number(fromWallet.balance) - Number(amount)
-      }).eq('id', fromWalletId);
+      }).eq('id', fromWallet.id);
 
+      // Update to wallet balance
       await supabase.from('wallets').update({
         balance: Number(toWallet.balance) + toAmount
-      }).eq('id', toWalletId);
+      }).eq('id', toWallet.id);
 
       // Record swap
       await supabase.from('coin_swaps').insert({
         user_id: user?.id,
-        from_wallet_id: fromWalletId,
-        to_wallet_id: toWalletId,
+        from_wallet_id: fromWallet.id,
+        to_wallet_id: toWallet.id,
         from_amount: Number(amount),
         to_amount: toAmount,
-        from_symbol: fromWallet.asset_symbol,
-        to_symbol: toWallet.asset_symbol,
+        from_symbol: fromSymbol,
+        to_symbol: toSymbol,
         exchange_rate: exchangeRate,
       });
 
@@ -90,10 +126,10 @@ export function SwapDialog({ open, onOpenChange }: SwapDialogProps) {
     },
     onSuccess: ({ toAmount }) => {
       queryClient.invalidateQueries({ queryKey: ['wallets', user?.id] });
-      toast.success(`Swapped successfully! Received ${toAmount.toFixed(8)}`);
+      toast.success(`Swapped successfully! Received ${toAmount.toFixed(8)} ${toSymbol}`);
       onOpenChange(false);
-      setFromWalletId('');
-      setToWalletId('');
+      setFromSymbol('');
+      setToSymbol('');
       setAmount('');
     },
     onError: (error: Error) => {
@@ -101,10 +137,12 @@ export function SwapDialog({ open, onOpenChange }: SwapDialogProps) {
     },
   });
 
-  const fromWallet = wallets?.find(w => w.id === fromWalletId);
-  const toWallet = wallets?.find(w => w.id === toWalletId);
-  const exchangeRate = fromWallet && toWallet 
-    ? getExchangeRate(fromWallet.asset_symbol, toWallet.asset_symbol)
+  const fromWallet = wallets?.find(w => w.asset_symbol === fromSymbol);
+  const fromCrypto = AVAILABLE_CRYPTOS.find(c => c.symbol === fromSymbol);
+  const toCrypto = AVAILABLE_CRYPTOS.find(c => c.symbol === toSymbol);
+  
+  const exchangeRate = fromSymbol && toSymbol && cryptoRates
+    ? (cryptoRates[fromSymbol] || 0) / (cryptoRates[toSymbol] || 1)
     : 0;
   const estimatedReceive = amount && exchangeRate ? Number(amount) * exchangeRate : 0;
 
@@ -118,19 +156,51 @@ export function SwapDialog({ open, onOpenChange }: SwapDialogProps) {
 
         <div className="space-y-4">
           <div>
-            <Label>From</Label>
-            <Select value={fromWalletId} onValueChange={setFromWalletId}>
+            <div className="flex items-center justify-between mb-2">
+              <Label>From</Label>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => refetchRates()}
+                disabled={isRefetching}
+                className="h-auto p-1"
+              >
+                <RefreshCw className={`h-3 w-3 ${isRefetching ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
+            <Select value={fromSymbol} onValueChange={setFromSymbol}>
               <SelectTrigger>
                 <SelectValue placeholder="Select coin to swap" />
               </SelectTrigger>
               <SelectContent>
-                {wallets?.filter(w => Number(w.balance) > 0).map((wallet) => (
-                  <SelectItem key={wallet.id} value={wallet.id}>
-                    {wallet.asset_name} - {Number(wallet.balance).toFixed(8)} {wallet.asset_symbol}
-                  </SelectItem>
-                ))}
+                {AVAILABLE_CRYPTOS.map((crypto) => {
+                  const wallet = wallets?.find(w => w.asset_symbol === crypto.symbol);
+                  const balance = wallet ? Number(wallet.balance) : 0;
+                  const hasBalance = balance > 0;
+                  const price = cryptoRates?.[crypto.symbol] || 0;
+                  
+                  return (
+                    <SelectItem 
+                      key={crypto.symbol} 
+                      value={crypto.symbol}
+                      disabled={!hasBalance}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span>{crypto.name} ({crypto.symbol})</span>
+                        <span className={hasBalance ? 'text-foreground' : 'text-muted-foreground'}>
+                          {balance.toFixed(8)} ${price.toFixed(2)}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
+            {fromWallet && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Available: {Number(fromWallet.balance).toFixed(8)} {fromSymbol}
+              </p>
+            )}
           </div>
 
           <div>
@@ -150,16 +220,27 @@ export function SwapDialog({ open, onOpenChange }: SwapDialogProps) {
 
           <div>
             <Label>To</Label>
-            <Select value={toWalletId} onValueChange={setToWalletId}>
+            <Select value={toSymbol} onValueChange={setToSymbol}>
               <SelectTrigger>
                 <SelectValue placeholder="Select coin to receive" />
               </SelectTrigger>
               <SelectContent>
-                {wallets?.filter(w => w.id !== fromWalletId).map((wallet) => (
-                  <SelectItem key={wallet.id} value={wallet.id}>
-                    {wallet.asset_name} ({wallet.asset_symbol})
-                  </SelectItem>
-                ))}
+                {AVAILABLE_CRYPTOS.filter(crypto => crypto.symbol !== fromSymbol).map((crypto) => {
+                  const wallet = wallets?.find(w => w.asset_symbol === crypto.symbol);
+                  const balance = wallet ? Number(wallet.balance).toFixed(8) : '0.00000000';
+                  const price = cryptoRates?.[crypto.symbol] || 0;
+                  
+                  return (
+                    <SelectItem key={crypto.symbol} value={crypto.symbol}>
+                      <div className="flex items-center justify-between w-full">
+                        <span>{crypto.name} ({crypto.symbol})</span>
+                        <span className="text-muted-foreground">
+                          {balance} ${price.toFixed(2)}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
@@ -170,13 +251,13 @@ export function SwapDialog({ open, onOpenChange }: SwapDialogProps) {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Exchange Rate:</span>
                   <span className="font-semibold">
-                    1 {fromWallet?.asset_symbol} = {exchangeRate.toFixed(8)} {toWallet?.asset_symbol}
+                    1 {fromCrypto?.symbol} = {exchangeRate.toFixed(8)} {toCrypto?.symbol}
                   </span>
                 </div>
                 <div className="flex justify-between text-success">
                   <span>You'll Receive:</span>
                   <span className="font-semibold">
-                    {estimatedReceive.toFixed(8)} {toWallet?.asset_symbol}
+                    {estimatedReceive.toFixed(8)} {toCrypto?.symbol}
                   </span>
                 </div>
               </div>
@@ -186,7 +267,7 @@ export function SwapDialog({ open, onOpenChange }: SwapDialogProps) {
           <Button 
             onClick={() => swapMutation.mutate()} 
             className="w-full"
-            disabled={!fromWalletId || !toWalletId || !amount || swapMutation.isPending}
+            disabled={!fromSymbol || !toSymbol || !amount || fromSymbol === toSymbol || swapMutation.isPending}
           >
             {swapMutation.isPending ? 'Swapping...' : 'Swap Now'}
           </Button>
