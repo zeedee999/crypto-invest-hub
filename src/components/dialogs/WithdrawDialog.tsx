@@ -58,10 +58,10 @@ export function WithdrawDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
+        <Button variant="outline" className="h-auto flex-col gap-2 py-4">
           <ArrowUpRight className="h-4 w-4 mr-2" />
-          Withdraw
-        </Button>
+          <span className="text-sm">Withdraw</span>
+          </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

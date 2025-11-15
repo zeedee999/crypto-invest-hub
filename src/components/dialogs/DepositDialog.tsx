@@ -31,10 +31,10 @@ export function DepositDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <ArrowDownLeft className="h-4 w-4 mr-2" />
-          Deposit
-        </Button>
+        <Button variant="outline" className="h-auto flex-col gap-2 py-4">
+            <ArrowDownLeft className="h-4 w-4 mr-2" />
+            <span className="text-sm">Deposit</span>
+          </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

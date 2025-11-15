@@ -12,6 +12,7 @@ import Markets from "./pages/Markets";
 import Portfolio from "./pages/Portfolio";
 import Transactions from "./pages/Transactions";
 import NotFound from "./pages/NotFound";
+import CryptoDetail from "@/components/crypto/CryptoDetail";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
               <Route path="/markets" element={<ProtectedRoute><Markets /></ProtectedRoute>} />
               <Route path="/portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
               <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+              <Route path="/crypto/:id" element={<ProtectedRoute><CryptoDetail /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
