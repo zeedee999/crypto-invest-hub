@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -6,11 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Upload } from 'lucide-react';
+import { Upload, Loader2 } from 'lucide-react';
 
 export default function AdminSettings() {
   const { isAdmin, isLoading } = useUserRole();
@@ -23,6 +22,14 @@ export default function AdminSettings() {
   const [ethQr, setEthQr] = useState('');
   const [usdtAddress, setUsdtAddress] = useState('');
   const [usdtQr, setUsdtQr] = useState('');
+  
+  const [uploadingBtc, setUploadingBtc] = useState(false);
+  const [uploadingEth, setUploadingEth] = useState(false);
+  const [uploadingUsdt, setUploadingUsdt] = useState(false);
+  
+  const btcInputRef = useRef<HTMLInputElement>(null);
+  const ethInputRef = useRef<HTMLInputElement>(null);
+  const usdtInputRef = useRef<HTMLInputElement>(null);
 
   const { data: settings } = useQuery({
     queryKey: ['wallet-settings'],
@@ -47,6 +54,57 @@ export default function AdminSettings() {
       setUsdtQr(settings.usdt_qr || '');
     }
   }, [settings]);
+
+  const uploadQrCode = async (file: File, currency: string): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${currency}-${Date.now()}.${fileExt}`;
+    const filePath = fileName;
+
+    const { error: uploadError, data } = await supabase.storage
+      .from('qr-codes')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('qr-codes')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    currency: 'btc' | 'eth' | 'usdt'
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    const setUploading = currency === 'btc' ? setUploadingBtc : 
+                         currency === 'eth' ? setUploadingEth : 
+                         setUploadingUsdt;
+    
+    const setQr = currency === 'btc' ? setBtcQr : 
+                  currency === 'eth' ? setEthQr : 
+                  setUsdtQr;
+
+    try {
+      setUploading(true);
+      const url = await uploadQrCode(file, currency);
+      setQr(url);
+      toast.success('QR code uploaded successfully');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload QR code');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const saveSettings = useMutation({
     mutationFn: async () => {
@@ -125,13 +183,40 @@ export default function AdminSettings() {
                 />
               </div>
               <div>
-                <Label htmlFor="btcQr">QR Code URL</Label>
-                <Input
-                  id="btcQr"
-                  value={btcQr}
-                  onChange={(e) => setBtcQr(e.target.value)}
-                  placeholder="Enter QR code image URL"
-                />
+                <Label>QR Code</Label>
+                <div className="space-y-2">
+                  <input
+                    ref={btcInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, 'btc')}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => btcInputRef.current?.click()}
+                    disabled={uploadingBtc}
+                  >
+                    {uploadingBtc ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload QR Code
+                      </>
+                    )}
+                  </Button>
+                  {btcQr && (
+                    <div className="mt-2">
+                      <img src={btcQr} alt="BTC QR" className="w-32 h-32 object-contain border rounded" />
+                    </div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -151,13 +236,40 @@ export default function AdminSettings() {
                 />
               </div>
               <div>
-                <Label htmlFor="ethQr">QR Code URL</Label>
-                <Input
-                  id="ethQr"
-                  value={ethQr}
-                  onChange={(e) => setEthQr(e.target.value)}
-                  placeholder="Enter QR code image URL"
-                />
+                <Label>QR Code</Label>
+                <div className="space-y-2">
+                  <input
+                    ref={ethInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, 'eth')}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => ethInputRef.current?.click()}
+                    disabled={uploadingEth}
+                  >
+                    {uploadingEth ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload QR Code
+                      </>
+                    )}
+                  </Button>
+                  {ethQr && (
+                    <div className="mt-2">
+                      <img src={ethQr} alt="ETH QR" className="w-32 h-32 object-contain border rounded" />
+                    </div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -177,13 +289,40 @@ export default function AdminSettings() {
                 />
               </div>
               <div>
-                <Label htmlFor="usdtQr">QR Code URL</Label>
-                <Input
-                  id="usdtQr"
-                  value={usdtQr}
-                  onChange={(e) => setUsdtQr(e.target.value)}
-                  placeholder="Enter QR code image URL"
-                />
+                <Label>QR Code</Label>
+                <div className="space-y-2">
+                  <input
+                    ref={usdtInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, 'usdt')}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => usdtInputRef.current?.click()}
+                    disabled={uploadingUsdt}
+                  >
+                    {uploadingUsdt ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload QR Code
+                      </>
+                    )}
+                  </Button>
+                  {usdtQr && (
+                    <div className="mt-2">
+                      <img src={usdtQr} alt="USDT QR" className="w-32 h-32 object-contain border rounded" />
+                    </div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
