@@ -8,31 +8,34 @@ import { ActiveInvestmentsDialog } from "@/components/dialogs/ActiveInvestmentsD
 
 const investmentProducts = [
   {
-    id: "auto-invest",
+    id: "short-term",
     icon: Zap,
-    name: "Auto-Invest",
-    description: "Automate your crypto purchases daily, weekly, or monthly",
-    apy: "Variable",
-    term: "Flexible",
-    badge: "Popular",
+    name: "Short-Term Lock",
+    description: "Lock your crypto for 2 months and earn competitive returns",
+    apy: "8% APY",
+    term: "2 months",
+    termMonths: 2,
+    badge: "Quick Returns",
   },
   {
-    id: "fixed-term",
+    id: "semi-annual",
     icon: Lock,
-    name: "Fixed-Term",
-    description: "Lock your crypto for 30, 60, or 90 days for higher returns",
-    apy: "12% APY",
-    term: "30-90 days",
+    name: "Semi-Annual Lock",
+    description: "Lock your crypto for 6 months for higher returns",
+    apy: "15% APY",
+    term: "6 months",
+    termMonths: 6,
     badge: "High Yield",
   },
   {
-    id: "flexible-earn",
+    id: "annual",
     icon: TrendingUp,
-    name: "Flexible Earn",
-    description: "Earn daily interest with no lock-up period",
-    apy: "8% APY",
-    term: "No lock",
-    badge: "Flexible",
+    name: "Annual Lock",
+    description: "Lock your crypto for a full year and maximize your earnings",
+    apy: "25% APY",
+    term: "12 months",
+    termMonths: 12,
+    badge: "Best Returns",
   },
 ];
 
@@ -52,7 +55,6 @@ const InvestmentProducts = () => {
   };
 
   const getApyValue = (apyString: string) => {
-    if (apyString === 'Variable') return 6;
     return parseFloat(apyString);
   };
 
@@ -127,6 +129,7 @@ const InvestmentProducts = () => {
             onOpenChange={setDialogOpen}
             planType={selectedProduct.id as any}
             defaultApy={getApyValue(selectedProduct.apy)}
+            defaultTermMonths={selectedProduct.termMonths}
           />
           <ActiveInvestmentsDialog
             open={viewInvestmentsOpen}

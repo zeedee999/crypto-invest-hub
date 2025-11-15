@@ -13,16 +13,23 @@ import { toast } from 'sonner';
 interface InvestmentPlanDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  planType: 'auto-invest' | 'fixed-term' | 'flexible-earn';
+  planType: 'short-term' | 'semi-annual' | 'annual';
   defaultApy: number;
+  defaultTermMonths?: number;
 }
 
-export function InvestmentPlanDialog({ open, onOpenChange, planType, defaultApy }: InvestmentPlanDialogProps) {
+export function InvestmentPlanDialog({ 
+  open, 
+  onOpenChange, 
+  planType, 
+  defaultApy,
+  defaultTermMonths = 0
+}: InvestmentPlanDialogProps) {
   const { user } = useAuth();
   const { createPlan } = useInvestmentPlans();
   const [selectedWalletId, setSelectedWalletId] = useState('');
   const [amount, setAmount] = useState('');
-  const [termMonths, setTermMonths] = useState(planType === 'fixed-term' ? '1' : '0');
+  const [termMonths, setTermMonths] = useState(defaultTermMonths.toString());
 
   const { data: wallets } = useQuery({
     queryKey: ['wallets', user?.id],
@@ -81,9 +88,9 @@ export function InvestmentPlanDialog({ open, onOpenChange, planType, defaultApy 
 
   const getPlanTitle = () => {
     switch (planType) {
-      case 'auto-invest': return 'Create Auto-Invest Plan';
-      case 'fixed-term': return 'Create Fixed-Term Plan';
-      case 'flexible-earn': return 'Create Flexible Earn Plan';
+      case 'short-term': return 'Create 2-Month Lock Investment';
+      case 'semi-annual': return 'Create 6-Month Lock Investment';
+      case 'annual': return 'Create 12-Month Lock Investment';
     }
   };
 
@@ -125,23 +132,14 @@ export function InvestmentPlanDialog({ open, onOpenChange, planType, defaultApy 
             />
           </div>
 
-          {planType === 'fixed-term' && (
-            <div>
-              <Label>Lock Period (Months)</Label>
-              <Select value={termMonths} onValueChange={setTermMonths}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1 Month (8% APY)</SelectItem>
-                  <SelectItem value="2">2 Months (10% APY)</SelectItem>
-                  <SelectItem value="3">3 Months (12% APY)</SelectItem>
-                  <SelectItem value="6">6 Months (15% APY)</SelectItem>
-                  <SelectItem value="12">12 Months (20% APY)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          <div>
+            <Label>Lock Period</Label>
+            <Input
+              value={`${termMonths} months (Fixed)`}
+              disabled
+              className="bg-muted"
+            />
+          </div>
 
           <div className="bg-muted p-3 rounded-lg">
             <div className="text-sm space-y-1">
@@ -151,9 +149,7 @@ export function InvestmentPlanDialog({ open, onOpenChange, planType, defaultApy 
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Lock Period:</span>
-                <span className="font-semibold">
-                  {termMonths === '0' ? 'Flexible' : `${termMonths} Month(s)`}
-                </span>
+                <span className="font-semibold">{termMonths} Month(s)</span>
               </div>
               {amount && (
                 <div className="flex justify-between text-success">
