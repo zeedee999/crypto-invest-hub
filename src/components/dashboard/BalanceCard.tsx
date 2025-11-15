@@ -20,12 +20,12 @@ const BalanceCard: React.FC<BalanceCardProps> = ({
   textColor = "text-gray-600",
 }) => {
   // ApexCharts options for sparkline
-  const chartOptions = {
+  const chartOptions: ApexCharts.ApexOptions = {
     chart: {
-      type: "line",
+      type: "line" as const,
       sparkline: { enabled: true },
     },
-    stroke: { curve: "smooth", width: 2 },
+    stroke: { curve: "smooth" as const, width: 2 },
     tooltip: { enabled: false },
   };
 

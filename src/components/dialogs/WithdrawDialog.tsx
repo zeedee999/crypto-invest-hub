@@ -15,13 +15,17 @@ const assets = [
   { symbol: 'USDT', name: 'Tether' },
 ];
 
-export function WithdrawDialog() {
+interface WithdrawDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
   const { user } = useAuth();
   const [selectedAsset, setSelectedAsset] = useState('');
   const [address, setAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
 
   const handleWithdraw = async () => {
     if (!selectedAsset || !address || !amount || !user) {
@@ -44,7 +48,7 @@ export function WithdrawDialog() {
       if (error) throw error;
 
       toast.success('Withdrawal request submitted');
-      setOpen(false);
+      onOpenChange(false);
       setAddress('');
       setAmount('');
       setSelectedAsset('');
@@ -56,13 +60,7 @@ export function WithdrawDialog() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="h-auto flex-col gap-2 py-4">
-          <ArrowUpRight className="h-4 w-4 mr-2" />
-          <span className="text-sm">Withdraw</span>
-          </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Withdraw Crypto</DialogTitle>
