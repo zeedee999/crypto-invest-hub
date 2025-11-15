@@ -8,12 +8,7 @@ import { ArrowUpRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-
-const assets = [
-  { symbol: 'BTC', name: 'Bitcoin' },
-  { symbol: 'ETH', name: 'Ethereum' },
-  { symbol: 'USDT', name: 'Tether' },
-];
+import { useQuery } from '@tanstack/react-query';
 
 interface WithdrawDialogProps {
   open: boolean;
@@ -22,14 +17,38 @@ interface WithdrawDialogProps {
 
 export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
   const { user } = useAuth();
-  const [selectedAsset, setSelectedAsset] = useState('');
+  const [selectedWalletId, setSelectedWalletId] = useState('');
   const [address, setAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Fetch user wallets with balance > 0
+  const { data: wallets } = useQuery({
+    queryKey: ['wallets', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('wallets')
+        .select('*')
+        .eq('user_id', user?.id)
+        .gt('balance', 0);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user && open,
+  });
+
+  const selectedWallet = wallets?.find(w => w.id === selectedWalletId);
+
   const handleWithdraw = async () => {
-    if (!selectedAsset || !address || !amount || !user) {
+    if (!selectedWalletId || !address || !amount || !user || !selectedWallet) {
       toast.error('Please fill in all fields');
+      return;
+    }
+
+    const withdrawAmount = parseFloat(amount);
+    if (withdrawAmount > Number(selectedWallet.balance)) {
+      toast.error('Insufficient balance');
       return;
     }
 
@@ -39,8 +58,8 @@ export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
       const { error } = await supabase.from('transactions').insert({
         user_id: user.id,
         type: 'withdrawal',
-        asset_symbol: selectedAsset,
-        amount: parseFloat(amount),
+        asset_symbol: selectedWallet.asset_symbol,
+        amount: withdrawAmount,
         status: 'pending',
         notes: `Withdrawal to ${address}`,
       });
@@ -51,7 +70,7 @@ export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
       onOpenChange(false);
       setAddress('');
       setAmount('');
-      setSelectedAsset('');
+      setSelectedWalletId('');
     } catch (error: any) {
       toast.error(error.message || 'Failed to submit withdrawal');
     } finally {
@@ -71,15 +90,15 @@ export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
         
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Asset</Label>
-            <Select value={selectedAsset} onValueChange={setSelectedAsset}>
+            <Label>Select Wallet</Label>
+            <Select value={selectedWalletId} onValueChange={setSelectedWalletId}>
               <SelectTrigger>
-                <SelectValue placeholder="Choose cryptocurrency" />
+                <SelectValue placeholder="Choose wallet" />
               </SelectTrigger>
               <SelectContent>
-                {assets.map((asset) => (
-                  <SelectItem key={asset.symbol} value={asset.symbol}>
-                    {asset.name} ({asset.symbol})
+                {wallets?.map((wallet) => (
+                  <SelectItem key={wallet.id} value={wallet.id}>
+                    {wallet.asset_name} ({wallet.asset_symbol}) - Balance: {Number(wallet.balance).toFixed(8)}
                   </SelectItem>
                 ))}
               </SelectContent>

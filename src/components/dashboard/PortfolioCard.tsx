@@ -86,11 +86,8 @@ const PortfolioCard: React.FC = () => {
     return total + Number(plan.current_value);
   }, 0) || 0;
 
-  // Add deposit balance to total
-  const depositBalance = balance ? Number(balance.deposit_balance) : 0;
-
-  // Total portfolio = wallets + investments (no more deposit_balance)
-  const totalBalance = walletsValue + investmentValue;
+  // Total portfolio = only wallets (uninvested money)
+  const totalBalance = walletsValue;
 
   // Calculate Bitcoin equivalent
   const btcEquivalent = totalBalance / btcPrice;
