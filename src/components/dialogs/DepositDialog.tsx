@@ -23,41 +23,34 @@ export function DepositDialog({ open, onOpenChange }: DepositDialogProps) {
   const [amount, setAmount] = useState('');
   const [copied, setCopied] = useState(false);
 
-  const { data: walletSettings } = useQuery({
-    queryKey: ['wallet-settings'],
+  const { data: cryptoWallets } = useQuery({
+    queryKey: ['crypto-wallets-active'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('wallet_settings')
+        .from('crypto_wallet_addresses')
         .select('*')
-        .maybeSingle();
+        .eq('is_active', true)
+        .order('coin_symbol');
       
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) throw error;
       return data;
     },
   });
 
-  const assets = [
-    { 
-      symbol: 'BTC', 
-      name: 'Bitcoin', 
-      address: walletSettings?.btc_address || 'Not configured',
-      qr: walletSettings?.btc_qr 
-    },
-    { 
-      symbol: 'ETH', 
-      name: 'Ethereum', 
-      address: walletSettings?.eth_address || 'Not configured',
-      qr: walletSettings?.eth_qr
-    },
-    { 
-      symbol: 'USDT', 
-      name: 'Tether (ERC20)', 
-      address: walletSettings?.usdt_address || 'Not configured',
-      qr: walletSettings?.usdt_qr
-    },
-  ];
+  const [selectedChain, setSelectedChain] = useState('');
 
-  const currentAsset = assets.find(a => a.symbol === selectedAsset);
+  const assets = cryptoWallets?.map(wallet => ({
+    id: wallet.id,
+    symbol: wallet.coin_symbol,
+    name: wallet.coin_name,
+    chain: wallet.chain,
+    address: wallet.wallet_address,
+    qr: wallet.qr_code_url,
+  })) || [];
+
+  const currentAsset = assets.find(a => a.id === selectedAsset);
+
+  
 
   const copyAddress = () => {
     if (currentAsset) {
@@ -74,7 +67,7 @@ export function DepositDialog({ open, onOpenChange }: DepositDialogProps) {
         throw new Error('Please fill in all fields');
       }
 
-      const asset = assets.find(a => a.symbol === selectedAsset);
+      const asset = currentAsset;
       if (!asset) throw new Error('Invalid asset');
 
       // Check if wallet exists or create it (but don't add balance yet)
@@ -144,8 +137,8 @@ export function DepositDialog({ open, onOpenChange }: DepositDialogProps) {
               </SelectTrigger>
               <SelectContent>
                 {assets.map((asset) => (
-                  <SelectItem key={asset.symbol} value={asset.symbol}>
-                    {asset.name} ({asset.symbol})
+                  <SelectItem key={asset.id} value={asset.id}>
+                    {asset.name} ({asset.symbol}) - {asset.chain}
                   </SelectItem>
                 ))}
               </SelectContent>

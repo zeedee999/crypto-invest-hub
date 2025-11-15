@@ -56,6 +56,42 @@ export type Database = {
         }
         Relationships: []
       }
+      crypto_wallet_addresses: {
+        Row: {
+          chain: string
+          coin_name: string
+          coin_symbol: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          qr_code_url: string | null
+          updated_at: string | null
+          wallet_address: string
+        }
+        Insert: {
+          chain: string
+          coin_name: string
+          coin_symbol: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          qr_code_url?: string | null
+          updated_at?: string | null
+          wallet_address: string
+        }
+        Update: {
+          chain?: string
+          coin_name?: string
+          coin_symbol?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          qr_code_url?: string | null
+          updated_at?: string | null
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       investment_plans: {
         Row: {
           amount: number
