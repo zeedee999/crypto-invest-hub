@@ -42,6 +42,8 @@ export function UsersManagement() {
         balance: balances?.find(b => b.user_id === profile.id),
       }));
     },
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 
   const toggleSuspension = useMutation({
