@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Ban, CheckCircle, Edit, Trash2 } from 'lucide-react';
+import { Ban, CheckCircle, Edit, Trash2, Shield, User } from 'lucide-react';
 import { EditUserDialog } from './EditUserDialog';
 import {
   AlertDialog,
@@ -88,6 +88,24 @@ export function UsersManagement() {
     },
   });
 
+  const changeUserRole = useMutation({
+    mutationFn: async ({ userId, newRole }: { userId: string; newRole: 'admin' | 'user' }) => {
+      const { error } = await supabase
+        .from('user_roles')
+        .update({ role: newRole })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast.success('User role updated successfully');
+    },
+    onError: () => {
+      toast.error('Failed to update user role');
+    },
+  });
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -132,6 +150,25 @@ export function UsersManagement() {
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
+                  {user.role === 'user' ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => changeUserRole.mutate({ userId: user.id, newRole: 'admin' })}
+                      title="Make Admin"
+                    >
+                      <Shield className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => changeUserRole.mutate({ userId: user.id, newRole: 'user' })}
+                      title="Make User"
+                    >
+                      <User className="h-4 w-4" />
+                    </Button>
+                  )}
                   {user.status === 'active' ? (
                     <Button
                       variant="destructive"
