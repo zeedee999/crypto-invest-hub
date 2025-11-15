@@ -1,12 +1,51 @@
-import { Lock, TrendingUp } from "lucide-react";
+import { Lock, TrendingUp, Bitcoin } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
 
 const InvestmentBalanceCard: React.FC = () => {
   const { user } = useAuth();
+  const [btcPrice, setBtcPrice] = useState(96000);
+
+  // Real-time BTC price
+  useEffect(() => {
+    const ws = new WebSocket(
+      "wss://ws.finnhub.io?token=d4c5phhr01qoua32kvp0d4c5phhr01qoua32kvpg"
+    );
+
+    ws.onopen = () => {
+      ws.send(
+        JSON.stringify({ type: "subscribe", symbol: "BINANCE:BTCUSDT" })
+      );
+    };
+
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === "trade" && message.data && message.data.length > 0) {
+        setBtcPrice(message.data[0].p);
+      }
+    };
+
+    return () => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(
+          JSON.stringify({ type: "unsubscribe", symbol: "BINANCE:BTCUSDT" })
+        );
+      }
+      ws.close();
+    };
+  }, []);
+
+  // Crypto prices
+  const cryptoPrices: Record<string, number> = {
+    BTC: btcPrice,
+    ETH: 3180,
+    USDT: 1,
+    BNB: 936,
+  };
 
   const { data: investmentPlans } = useQuery({
     queryKey: ['investment-plans-dashboard', user?.id],
@@ -62,31 +101,41 @@ const InvestmentBalanceCard: React.FC = () => {
           {investmentPlans && investmentPlans.length > 0 && (
             <div className="space-y-2 pt-2 border-t border-border">
               <p className="text-xs font-medium text-muted-foreground mb-2">Active Investments</p>
-              {investmentPlans.slice(0, 3).map((plan) => (
-                <div key={plan.id} className="flex items-center justify-between py-2">
-                  <div className="flex items-center gap-2">
-                    {plan.status === 'locked' && (
-                      <Lock className="h-3 w-3 text-primary" />
-                    )}
-                    <div>
-                      <p className="text-sm font-medium">
-                        {(plan as any).wallet?.asset_symbol || 'N/A'} {plan.plan_type}
+              {investmentPlans.slice(0, 3).map((plan) => {
+                const assetSymbol = (plan as any).wallet?.asset_symbol || 'USDT';
+                const price = cryptoPrices[assetSymbol] || 1;
+                const cryptoAmount = Number(plan.current_value) / price;
+                const valueUSD = Number(plan.current_value);
+
+                return (
+                  <div key={plan.id} className="flex items-center justify-between py-2">
+                    <div className="flex items-center gap-2">
+                      {plan.status === 'locked' && (
+                        <Lock className="h-3 w-3 text-primary" />
+                      )}
+                      <div>
+                        <p className="text-sm font-medium">
+                          {assetSymbol} {plan.plan_type}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {plan.apy}% APY
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold">
+                        {cryptoAmount.toFixed(assetSymbol === 'BTC' ? 8 : 4)} {assetSymbol}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {plan.apy}% APY
+                        ≈ ${valueUSD.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
+                      <Badge variant={plan.status === 'locked' ? 'default' : 'secondary'} className="text-xs mt-1">
+                        {plan.status === 'locked' ? 'Locked' : 'Active'}
+                      </Badge>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold">
-                      ${Number(plan.current_value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                    <Badge variant={plan.status === 'locked' ? 'default' : 'secondary'} className="text-xs">
-                      {plan.status === 'locked' ? 'Locked' : 'Active'}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
               {investmentPlans.length > 3 && (
                 <p className="text-xs text-muted-foreground text-center pt-2">
                   +{investmentPlans.length - 3} more investments
