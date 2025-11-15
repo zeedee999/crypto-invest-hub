@@ -10,7 +10,6 @@ import QRCode from 'react-qr-code';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUserBalance } from '@/hooks/useUserBalance';
 
 const assets = [
   { symbol: 'BTC', name: 'Bitcoin', address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa' },
@@ -27,7 +26,6 @@ interface DepositDialogProps {
 export function DepositDialog({ open, onOpenChange }: DepositDialogProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { updateBalance, balance } = useUserBalance();
   const [selectedAsset, setSelectedAsset] = useState('');
   const [amount, setAmount] = useState('');
   const [copied, setCopied] = useState(false);
@@ -52,7 +50,7 @@ export function DepositDialog({ open, onOpenChange }: DepositDialogProps) {
       const asset = assets.find(a => a.symbol === selectedAsset);
       if (!asset) throw new Error('Invalid asset');
 
-      // Check if wallet exists
+      // Check if wallet exists or create it (but don't add balance yet)
       let { data: wallet } = await supabase
         .from('wallets')
         .select('*')
@@ -60,7 +58,7 @@ export function DepositDialog({ open, onOpenChange }: DepositDialogProps) {
         .eq('asset_symbol', asset.symbol)
         .single();
 
-      // Create wallet if it doesn't exist
+      // Create wallet if it doesn't exist (with 0 balance)
       if (!wallet) {
         const { data: newWallet, error: createError } = await supabase
           .from('wallets')
@@ -68,7 +66,7 @@ export function DepositDialog({ open, onOpenChange }: DepositDialogProps) {
             user_id: user?.id,
             asset_symbol: asset.symbol,
             asset_name: asset.name,
-            balance: Number(amount),
+            balance: 0,
             wallet_address: asset.address,
           })
           .select()
@@ -76,35 +74,21 @@ export function DepositDialog({ open, onOpenChange }: DepositDialogProps) {
 
         if (createError) throw createError;
         wallet = newWallet;
-      } else {
-        // Update existing wallet
-        await supabase
-          .from('wallets')
-          .update({ balance: Number(wallet.balance) + Number(amount) })
-          .eq('id', wallet.id);
       }
 
-      // Update user's deposit balance
-      const currentDepositBalance = balance ? Number(balance.deposit_balance) : 0;
-      updateBalance({
-        deposit_balance: currentDepositBalance + Number(amount),
-      });
-
-      // Create transaction record
+      // Create transaction record with pending status
       await supabase.from('transactions').insert({
         user_id: user?.id,
         type: 'deposit',
         amount: Number(amount),
         asset_symbol: asset.symbol,
-        status: 'completed',
+        status: 'pending',
       });
 
-      queryClient.invalidateQueries({ queryKey: ['wallets', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['transactions', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['user-balance', user?.id] });
     },
     onSuccess: () => {
-      toast.success('Deposit confirmed!');
+      toast.success('Deposit request submitted! Waiting for admin approval.');
       onOpenChange(false);
       setSelectedAsset('');
       setAmount('');
