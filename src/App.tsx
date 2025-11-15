@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
+import { RoleBasedRedirect } from "@/components/RoleBasedRedirect";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminAuth from "./pages/AdminAuth";
@@ -27,6 +29,7 @@ function App() {
       <BrowserRouter>
         <ThemeProvider>
           <AuthProvider>
+            <RoleBasedRedirect />
             <TooltipProvider>
               <Toaster />
               <Sonner />
@@ -37,9 +40,9 @@ function App() {
                 <Route path="/markets" element={<ProtectedRoute><Markets /></ProtectedRoute>} />
                 <Route path="/portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
                 <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
-                <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-                <Route path="/admin/transactions" element={<ProtectedRoute><AdminTransactions /></ProtectedRoute>} />
-                <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
+                <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+                <Route path="/admin/transactions" element={<AdminRoute><AdminTransactions /></AdminRoute>} />
+                <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
                 <Route path="/crypto/:id" element={<ProtectedRoute><CryptoDetail /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

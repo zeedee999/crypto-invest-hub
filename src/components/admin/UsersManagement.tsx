@@ -102,7 +102,7 @@ export function UsersManagement() {
           {users?.map((user) => (
             <TableRow key={user.id}>
               <TableCell>{user.full_name || 'N/A'}</TableCell>
-              <TableCell>{user.phone || 'N/A'}</TableCell>
+              <TableCell>{user.email || 'N/A'}</TableCell>
               <TableCell>
                 <Badge variant={user.status === 'active' ? 'default' : 'destructive'}>
                   {user.status}
