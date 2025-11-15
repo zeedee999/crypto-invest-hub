@@ -6,6 +6,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Investment product configurations
+const INVESTMENT_PRODUCTS = [
+  { planType: 'short-term', apy: 8, termMonths: 2 },
+  { planType: 'semi-annual', apy: 15, termMonths: 6 },
+  { planType: 'annual', apy: 25, termMonths: 12 },
+];
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -19,7 +26,10 @@ serve(async (req) => {
 
     console.log('Starting auto-invest check...');
 
-    // Find approved deposits from 2-10 minutes ago
+    let depositProcessed = 0;
+    let walletProcessed = 0;
+
+    // ===== PART 1: Auto-invest approved deposits (2-10 minutes old) =====
     const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
 
@@ -130,11 +140,97 @@ serve(async (req) => {
         console.error('Error creating notification:', notificationError);
       }
 
+      depositProcessed++;
       console.log(`Auto-invested ${investmentAmount} ${deposit.asset_symbol} for user ${deposit.user_id}`);
     }
 
+    // ===== PART 2: Auto-invest uninvested wallet balances (15+ minutes old) =====
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+
+    const { data: wallets, error: walletsError } = await supabase
+      .from('wallets')
+      .select('*')
+      .gt('balance', 0)
+      .lte('updated_at', fifteenMinutesAgo);
+
+    if (walletsError) {
+      console.error('Error fetching wallets:', walletsError);
+    } else {
+      console.log(`Found ${wallets?.length || 0} wallets with uninvested balances (15+ minutes old)`);
+
+      for (const wallet of wallets || []) {
+        const investmentAmount = Number(wallet.balance);
+        
+        if (investmentAmount <= 0) {
+          console.log(`Wallet ${wallet.id} balance is zero, skipping`);
+          continue;
+        }
+
+        // Randomly select an investment product
+        const randomProduct = INVESTMENT_PRODUCTS[Math.floor(Math.random() * INVESTMENT_PRODUCTS.length)];
+        
+        // Calculate unlock date based on selected product
+        const unlockDate = new Date(Date.now() + randomProduct.termMonths * 30 * 24 * 60 * 60 * 1000);
+
+        // Create investment
+        const { data: investmentPlan, error: createError } = await supabase
+          .from('investment_plans')
+          .insert({
+            user_id: wallet.user_id,
+            wallet_id: wallet.id,
+            plan_type: randomProduct.planType,
+            amount: investmentAmount,
+            apy: randomProduct.apy,
+            term_months: randomProduct.termMonths,
+            status: 'locked',
+            unlock_date: unlockDate.toISOString(),
+            current_value: investmentAmount,
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating investment from wallet:', createError);
+          continue;
+        }
+
+        // Deduct from wallet balance
+        const { error: walletUpdateError } = await supabase
+          .from('wallets')
+          .update({ balance: 0 })
+          .eq('id', wallet.id);
+
+        if (walletUpdateError) {
+          console.error('Error updating wallet:', walletUpdateError);
+          continue;
+        }
+
+        // Send notification
+        const { error: notificationError } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: wallet.user_id,
+            type: 'investment',
+            title: 'Auto Investment Created',
+            message: `Your ${investmentAmount} ${wallet.asset_symbol} that was idle for 15+ minutes has been automatically invested in ${randomProduct.planType} (${randomProduct.termMonths} months, ${randomProduct.apy}% APY) to start earning returns.`,
+          });
+
+        if (notificationError) {
+          console.error('Error creating notification:', notificationError);
+        }
+
+        walletProcessed++;
+        console.log(`Auto-invested ${investmentAmount} ${wallet.asset_symbol} from idle wallet for user ${wallet.user_id} into ${randomProduct.planType}`);
+      }
+    }
+
     return new Response(
-      JSON.stringify({ success: true, processed: deposits?.length || 0 }),
+      JSON.stringify({ 
+        success: true, 
+        depositsProcessed: depositProcessed,
+        walletsProcessed: walletProcessed,
+        total: depositProcessed + walletProcessed
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
