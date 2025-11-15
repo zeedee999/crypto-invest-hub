@@ -1,3 +1,4 @@
+// src/components/dashboard/QuickActions.tsx
 import { RefreshCw, Send } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DepositDialog } from "@/components/dialogs/DepositDialog";
