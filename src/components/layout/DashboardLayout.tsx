@@ -1,12 +1,11 @@
 import { ReactNode } from "react";
-import { Menu, TrendingUp, Wallet, PieChart, Settings, LogOut, Moon, Sun, History, Shield } from "lucide-react";
+import { Menu, TrendingUp, Wallet, PieChart, Settings, LogOut, Moon, Sun, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { NotificationBell } from "@/components/NotificationBell";
-import { useUserRole } from "@/hooks/useUserRole";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -22,7 +21,6 @@ const navigationItems = [
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { isAdmin } = useUserRole();
   
   return (
     <div className="min-h-screen bg-background">
@@ -60,16 +58,6 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
           </Button>
-          {isAdmin && (
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
-              onClick={() => window.location.href = '/admin'}
-            >
-              <Shield className="h-5 w-5" />
-              Admin Panel
-            </Button>
-          )}
           <Button 
             variant="ghost" 
             className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
@@ -131,19 +119,9 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 onClick={toggleTheme}
               >
                 {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-              </Button>
-              {isAdmin && (
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
-                  onClick={() => window.location.href = '/admin'}
-                >
-                  <Shield className="h-5 w-5" />
-                  Admin Panel
+                  {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                 </Button>
-              )}
-              <Button 
+                <Button
                 variant="ghost" 
                 className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
                 onClick={signOut}
