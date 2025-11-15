@@ -88,12 +88,13 @@ const Index = () => {
 
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
+            <QuickActions />
+            
             <PortfolioCard />
             
             {/* TradingView Widget added here */}
             <TradingViewWidget /> 
-            
-            <QuickActions />
+          
             <InvestmentProducts />
           </div>
           
