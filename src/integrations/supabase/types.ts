@@ -318,6 +318,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_deposit_balance: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: undefined
+      }
       notify_profit_gain: {
         Args: { _amount: number; _plan_type: string; _user_id: string }
         Returns: undefined
