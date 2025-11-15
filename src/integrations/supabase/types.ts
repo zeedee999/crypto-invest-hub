@@ -373,6 +373,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_daily_bonus: { Args: never; Returns: undefined }
+      calculate_daily_profits: { Args: never; Returns: undefined }
       calculate_investment_gains: { Args: never; Returns: undefined }
       create_notification: {
         Args: {
