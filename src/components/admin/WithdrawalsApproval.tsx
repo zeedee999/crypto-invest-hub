@@ -76,10 +76,18 @@ export function WithdrawalsApproval() {
       if (txError) throw txError;
 
       // Return funds to user balance
-      const { error: balanceError } = await supabase.rpc('increment_deposit_balance', {
-        p_user_id: transaction.user_id,
-        p_amount: transaction.amount,
-      });
+      const { data: balance } = await supabase
+        .from('user_balances')
+        .select('deposit_balance')
+        .eq('user_id', transaction.user_id)
+        .single();
+
+      const { error: balanceError } = await supabase
+        .from('user_balances')
+        .update({ 
+          deposit_balance: (balance?.deposit_balance || 0) + transaction.amount 
+        })
+        .eq('user_id', transaction.user_id);
 
       if (balanceError) throw balanceError;
 
