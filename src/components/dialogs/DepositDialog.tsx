@@ -108,7 +108,7 @@ export function DepositDialog({ open, onOpenChange }: DepositDialogProps) {
       queryClient.invalidateQueries({ queryKey: ['transactions', user?.id] });
     },
     onSuccess: () => {
-      toast.success('Deposit request submitted! Waiting for admin approval.');
+      toast.success('Deposit request submitted!');
       onOpenChange(false);
       setSelectedAsset('');
       setAmount('');
