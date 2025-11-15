@@ -155,8 +155,8 @@ const Index: React.FC = () => {
           <div className="lg:col-span-2 space-y-6">
             <PortfolioCard />
             <QuickActions />
-            <StockChart title="BTC/USDT Live Chart" data={chartData} />
             <InvestmentProducts />
+            <StockChart title="BTC/USDT Live Chart" data={chartData} />
           </div>
 
           <div className="space-y-6">
