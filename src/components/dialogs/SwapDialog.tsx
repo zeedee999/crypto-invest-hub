@@ -44,7 +44,8 @@ export function SwapDialog({ open, onOpenChange }: SwapDialogProps) {
       USDT: 1,
       BNB: 936,
     };
-    return rates[toSymbol] / rates[fromSymbol];
+    // Convert from source currency to USD, then to target currency
+    return rates[fromSymbol] / rates[toSymbol];
   };
 
   const swapMutation = useMutation({
