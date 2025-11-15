@@ -32,7 +32,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               <TrendingUp className="h-5 w-5 text-primary-foreground" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              CryptoVault
+              CryptoVaultageFx
             </span>
           </div>
         </div>
@@ -78,7 +78,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <TrendingUp className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            CryptoVault
+            CryptoVaultageFx
           </span>
         </div>
         
@@ -96,7 +96,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <TrendingUp className="h-5 w-5 text-primary-foreground" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                CryptoVault
+                CryptoVaultageFx
               </span>
             </div>
             

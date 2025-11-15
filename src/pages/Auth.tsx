@@ -57,7 +57,7 @@ export default function Auth() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-2">
             <TrendingUp className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold">CryptoVault</h1>
+            <h1 className="text-3xl font-bold">CryptoVaultageFx</h1>
           </div>
           <p className="text-muted-foreground">Secure crypto trading platform</p>
         </div>

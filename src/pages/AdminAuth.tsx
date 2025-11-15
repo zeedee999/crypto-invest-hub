@@ -63,7 +63,7 @@ export default function AdminAuth() {
                 <Input
                   id="admin-email"
                   type="email"
-                  placeholder="admin@cryptovault.com"
+                  placeholder="admin@CryptoVaultageFx.com"
                   value={loginData.email}
                   onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                   required
