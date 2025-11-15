@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { InvestmentPlanDialog } from "@/components/dialogs/InvestmentPlanDialog";
+import { ActiveInvestmentsDialog } from "@/components/dialogs/ActiveInvestmentsDialog";
 
 const investmentProducts = [
   {
@@ -38,10 +39,16 @@ const investmentProducts = [
 const InvestmentProducts = () => {
   const [selectedProduct, setSelectedProduct] = useState<typeof investmentProducts[0] | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [viewInvestmentsOpen, setViewInvestmentsOpen] = useState(false);
 
   const handleStartInvesting = (product: typeof investmentProducts[0]) => {
     setSelectedProduct(product);
     setDialogOpen(true);
+  };
+
+  const handleViewInvestments = (product: typeof investmentProducts[0]) => {
+    setSelectedProduct(product);
+    setViewInvestmentsOpen(true);
   };
 
   const getApyValue = (apyString: string) => {
@@ -90,14 +97,22 @@ const InvestmentProducts = () => {
                     </div>
                   </div>
                   
-                  <Button 
-                    className="w-full" 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleStartInvesting(product)}
-                  >
-                    Start Investing
-                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleStartInvesting(product)}
+                    >
+                      Invest
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      onClick={() => handleViewInvestments(product)}
+                    >
+                      View Active
+                    </Button>
+                  </div>
                 </div>
               );
             })}
@@ -106,12 +121,20 @@ const InvestmentProducts = () => {
       </Card>
 
       {selectedProduct && (
-        <InvestmentPlanDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          planType={selectedProduct.id as any}
-          defaultApy={getApyValue(selectedProduct.apy)}
-        />
+        <>
+          <InvestmentPlanDialog
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+            planType={selectedProduct.id as any}
+            defaultApy={getApyValue(selectedProduct.apy)}
+          />
+          <ActiveInvestmentsDialog
+            open={viewInvestmentsOpen}
+            onOpenChange={setViewInvestmentsOpen}
+            planType={selectedProduct.id}
+            productName={selectedProduct.name}
+          />
+        </>
       )}
     </>
   );
