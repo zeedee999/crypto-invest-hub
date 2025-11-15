@@ -6,9 +6,20 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Wallet, Lock, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
+import { useUserRole } from '@/hooks/useUserRole';
+import { useEffect } from 'react';
 
 export default function Portfolio() {
   const { user } = useAuth();
+  const { isAdmin, isLoading: roleLoading } = useUserRole();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!roleLoading && isAdmin) {
+      navigate('/admin');
+    }
+  }, [isAdmin, roleLoading, navigate]);
 
   const { data: wallets, isLoading } = useQuery({
     queryKey: ['wallets', user?.id],

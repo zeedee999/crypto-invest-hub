@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface Crypto {
   id: string;           // CoinGecko ID
@@ -27,6 +28,13 @@ const initialCryptos: Crypto[] = [
 export default function Markets() {
   const [cryptos, setCryptos] = useState<Crypto[]>(initialCryptos);
   const navigate = useNavigate();
+  const { isAdmin, isLoading: roleLoading } = useUserRole();
+
+  useEffect(() => {
+    if (!roleLoading && isAdmin) {
+      navigate('/admin');
+    }
+  }, [isAdmin, roleLoading, navigate]);
 
   const fetchPrices = async () => {
     try {
