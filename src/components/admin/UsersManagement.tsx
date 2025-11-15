@@ -37,9 +37,14 @@ export function UsersManagement() {
         .from('user_balances')
         .select('*');
 
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('*');
+
       return profilesData.map(profile => ({
         ...profile,
         balance: balances?.find(b => b.user_id === profile.id),
+        role: roles?.find(r => r.user_id === profile.id)?.role || 'user',
       }));
     },
     refetchOnMount: true,
@@ -94,6 +99,7 @@ export function UsersManagement() {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
+            <TableHead>Role</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Deposit Balance</TableHead>
             <TableHead>Profit Balance</TableHead>
@@ -105,6 +111,11 @@ export function UsersManagement() {
             <TableRow key={user.id}>
               <TableCell>{user.full_name || 'N/A'}</TableCell>
               <TableCell>{user.email || 'N/A'}</TableCell>
+              <TableCell>
+                <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                  {user.role}
+                </Badge>
+              </TableCell>
               <TableCell>
                 <Badge variant={user.status === 'active' ? 'default' : 'destructive'}>
                   {user.status}
