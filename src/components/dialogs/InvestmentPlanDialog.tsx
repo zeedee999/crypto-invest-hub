@@ -51,24 +51,32 @@ export function InvestmentPlanDialog({ open, onOpenChange, planType, defaultApy 
       return;
     }
 
-    // Deduct from wallet
-    await supabase
-      .from('wallets')
-      .update({ balance: Number(wallet.balance) - Number(amount) })
-      .eq('id', selectedWalletId);
+    try {
+      // Deduct from wallet
+      const { error: walletError } = await supabase
+        .from('wallets')
+        .update({ balance: Number(wallet.balance) - Number(amount) })
+        .eq('id', selectedWalletId);
 
-    createPlan({
-      wallet_id: selectedWalletId,
-      plan_type: planType,
-      amount: Number(amount),
-      apy: defaultApy,
-      term_months: Number(termMonths),
-    });
+      if (walletError) throw walletError;
 
-    toast.success('Investment plan created successfully!');
-    onOpenChange(false);
-    setSelectedWalletId('');
-    setAmount('');
+      // Create investment plan
+      createPlan({
+        wallet_id: selectedWalletId,
+        plan_type: planType,
+        amount: Number(amount),
+        apy: defaultApy,
+        term_months: Number(termMonths),
+      });
+
+      toast.success('Investment plan created successfully!');
+      onOpenChange(false);
+      setSelectedWalletId('');
+      setAmount('');
+    } catch (error) {
+      console.error('Error creating investment:', error);
+      toast.error('Failed to create investment plan');
+    }
   };
 
   const getPlanTitle = () => {
