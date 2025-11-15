@@ -263,6 +263,42 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_settings: {
+        Row: {
+          btc_address: string | null
+          btc_qr: string | null
+          created_at: string | null
+          eth_address: string | null
+          eth_qr: string | null
+          id: string
+          updated_at: string | null
+          usdt_address: string | null
+          usdt_qr: string | null
+        }
+        Insert: {
+          btc_address?: string | null
+          btc_qr?: string | null
+          created_at?: string | null
+          eth_address?: string | null
+          eth_qr?: string | null
+          id?: string
+          updated_at?: string | null
+          usdt_address?: string | null
+          usdt_qr?: string | null
+        }
+        Update: {
+          btc_address?: string | null
+          btc_qr?: string | null
+          created_at?: string | null
+          eth_address?: string | null
+          eth_qr?: string | null
+          id?: string
+          updated_at?: string | null
+          usdt_address?: string | null
+          usdt_qr?: string | null
+        }
+        Relationships: []
+      }
       wallets: {
         Row: {
           asset_name: string

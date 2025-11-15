@@ -14,6 +14,8 @@ import Markets from "./pages/Markets";
 import Portfolio from "./pages/Portfolio";
 import Transactions from "./pages/Transactions";
 import Admin from "./pages/Admin";
+import AdminTransactions from "./pages/AdminTransactions";
+import AdminSettings from "./pages/AdminSettings";
 import NotFound from "./pages/NotFound";
 import CryptoDetail from "@/components/crypto/CryptoDetail";
 
@@ -36,6 +38,8 @@ function App() {
                 <Route path="/portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
                 <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="/admin/transactions" element={<ProtectedRoute><AdminTransactions /></ProtectedRoute>} />
+                <Route path="/admin/settings" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
                 <Route path="/crypto/:id" element={<ProtectedRoute><CryptoDetail /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

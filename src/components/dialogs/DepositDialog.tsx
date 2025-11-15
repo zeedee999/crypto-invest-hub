@@ -7,16 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import QRCode from 'react-qr-code';
-import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-
-const assets = [
-  { symbol: 'BTC', name: 'Bitcoin', address: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa' },
-  { symbol: 'ETH', name: 'Ethereum', address: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb' },
-  { symbol: 'USDT', name: 'Tether (ERC20)', address: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb' },
-  { symbol: 'BNB', name: 'BNB', address: 'bnb1a1zp1ep5qgefi2dmpttftl5slmv7divfna' },
-];
 
 interface DepositDialogProps {
   open: boolean;
@@ -29,6 +22,40 @@ export function DepositDialog({ open, onOpenChange }: DepositDialogProps) {
   const [selectedAsset, setSelectedAsset] = useState('');
   const [amount, setAmount] = useState('');
   const [copied, setCopied] = useState(false);
+
+  const { data: walletSettings } = useQuery({
+    queryKey: ['wallet-settings'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('wallet_settings')
+        .select('*')
+        .maybeSingle();
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+  });
+
+  const assets = [
+    { 
+      symbol: 'BTC', 
+      name: 'Bitcoin', 
+      address: walletSettings?.btc_address || 'Not configured',
+      qr: walletSettings?.btc_qr 
+    },
+    { 
+      symbol: 'ETH', 
+      name: 'Ethereum', 
+      address: walletSettings?.eth_address || 'Not configured',
+      qr: walletSettings?.eth_qr
+    },
+    { 
+      symbol: 'USDT', 
+      name: 'Tether (ERC20)', 
+      address: walletSettings?.usdt_address || 'Not configured',
+      qr: walletSettings?.usdt_qr
+    },
+  ];
 
   const currentAsset = assets.find(a => a.symbol === selectedAsset);
 
@@ -128,7 +155,11 @@ export function DepositDialog({ open, onOpenChange }: DepositDialogProps) {
           {currentAsset && (
             <>
               <div className="flex justify-center p-6 bg-white rounded-lg">
-                <QRCode value={currentAsset.address} size={200} />
+                {currentAsset.qr ? (
+                  <img src={currentAsset.qr} alt="QR Code" className="w-[200px] h-[200px]" />
+                ) : (
+                  <QRCode value={currentAsset.address} size={200} />
+                )}
               </div>
 
               <div>
