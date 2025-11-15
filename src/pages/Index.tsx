@@ -1,5 +1,6 @@
 // src/pages/Index.tsx
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import PortfolioCard from "@/components/dashboard/PortfolioCard";
 import BalanceCard from "@/components/dashboard/BalanceCard";
@@ -10,6 +11,7 @@ import QuickActions from "@/components/dashboard/QuickActions";
 import { DollarSign, Percent, Gift } from "lucide-react";
 import { CandlestickData } from "@/components/dashboard/StockChart";
 import { useUserBalance } from "@/hooks/useUserBalance";
+import { useUserRole } from "@/hooks/useUserRole";
 
 // ---- Finnhub WS types ----
 interface FinnhubTrade {
@@ -64,6 +66,14 @@ const processFinnhubQuote = (
 const Index: React.FC = () => {
   const [chartData, setChartData] = useState<CandlestickData>([{ data: [] }]);
   const { balance, isLoading: balanceLoading } = useUserBalance();
+  const { isAdmin, isLoading: roleLoading } = useUserRole();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!roleLoading && isAdmin) {
+      navigate('/admin');
+    }
+  }, [isAdmin, roleLoading, navigate]);
 
   useEffect(() => {
     const ws = new WebSocket(`wss://ws.finnhub.io?token=${FINNHUB_API_KEY}`);
