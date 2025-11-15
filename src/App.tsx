@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import Markets from "./pages/Markets";
 import Portfolio from "./pages/Portfolio";
 import Transactions from "./pages/Transactions";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import CryptoDetail from "@/components/crypto/CryptoDetail";
 
