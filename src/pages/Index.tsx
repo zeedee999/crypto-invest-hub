@@ -9,6 +9,7 @@ import InvestmentProducts from "@/components/dashboard/InvestmentProducts";
 import QuickActions from "@/components/dashboard/QuickActions";
 import { DollarSign, Percent, Gift } from "lucide-react";
 import { CandlestickData } from "@/components/dashboard/StockChart";
+import { useUserBalance } from "@/hooks/useUserBalance";
 
 // ---- Finnhub WS types ----
 interface FinnhubTrade {
@@ -62,6 +63,7 @@ const processFinnhubQuote = (
 
 const Index: React.FC = () => {
   const [chartData, setChartData] = useState<CandlestickData>([{ data: [] }]);
+  const { balance, isLoading: balanceLoading } = useUserBalance();
 
   useEffect(() => {
     const ws = new WebSocket(`wss://ws.finnhub.io?token=${FINNHUB_API_KEY}`);
@@ -86,10 +88,10 @@ const Index: React.FC = () => {
     };
   }, []);
 
-  // Dashboard Values
-  const depositBalance = 95000;
-  const profitBalance = 12847.32;
-  const totalBonus = 5000;
+  // Dashboard Values - from database
+  const depositBalance = balance ? Number(balance.deposit_balance) : 0;
+  const profitBalance = balance ? Number(balance.profit_balance) : 0;
+  const totalBonus = balance ? Number(balance.total_bonus) : 0;
 
   // Sparkline mock data
   const sparkline1 = Array.from({ length: 20 }, () =>

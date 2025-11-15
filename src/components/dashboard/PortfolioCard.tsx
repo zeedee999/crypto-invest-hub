@@ -1,64 +1,78 @@
 import { TrendingUp, TrendingDown, Eye, EyeOff } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
-
-// Real-time price type
-interface FinnhubTrade {
-  p: number; // price
-  s: string; // symbol
-  t: number; // timestamp
-  v: number; // volume
-  c: string[];
-}
-
-interface FinnhubWSMessage {
-  type: "trade" | string;
-  data?: FinnhubTrade[];
-}
-
-// Replace with your actual API key
-const FINNHUB_API_KEY = "d4c5phhr01qoua32kvp0d4c5phhr01qoua32kvpg";
-const SYMBOL = "BINANCE:BTCUSDT";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUserBalance } from "@/hooks/useUserBalance";
 
 const PortfolioCard: React.FC = () => {
   const [showBalance, setShowBalance] = useState(true);
-  const [btcPrice, setBtcPrice] = useState(0);
+  const { user } = useAuth();
+  const { balance } = useUserBalance();
 
-  // Mock portfolio holding
-  const btcHolding = 1.5; // e.g., 1.5 BTC
+  // Fetch all wallets
+  const { data: wallets } = useQuery({
+    queryKey: ['wallets', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('wallets')
+        .select('*')
+        .eq('user_id', user?.id);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
 
-  // Real-time total balance
-  const totalBalance = btcPrice * btcHolding;
-  const profitLoss = totalBalance - 100000; // e.g., initial investment 100k
-  const profitLossPercent = (profitLoss / 100000) * 100;
-  const isProfit = profitLoss > 0;
+  // Fetch investment plans
+  const { data: investmentPlans } = useQuery({
+    queryKey: ['investment-plans', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('investment_plans')
+        .select('*')
+        .eq('user_id', user?.id)
+        .in('status', ['active', 'locked']);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
 
-  // WebSocket to get real-time BTC price
-  useEffect(() => {
-    const ws = new WebSocket(`wss://ws.finnhub.io?token=${FINNHUB_API_KEY}`);
+  // Mock crypto prices (in production, fetch from API)
+  const cryptoPrices: Record<string, number> = {
+    BTC: 96000,
+    ETH: 3180,
+    USDT: 1,
+    BNB: 936,
+  };
 
-    ws.onopen = () => {
-      ws.send(JSON.stringify({ type: "subscribe", symbol: SYMBOL }));
-    };
+  // Calculate total portfolio value from wallets
+  const walletsValue = wallets?.reduce((total, wallet) => {
+    const price = cryptoPrices[wallet.asset_symbol] || 0;
+    return total + (Number(wallet.balance) * price);
+  }, 0) || 0;
 
-    ws.onmessage = (event: MessageEvent) => {
-      const message: FinnhubWSMessage = JSON.parse(event.data);
-      if (message.type === "trade" && message.data && message.data.length > 0) {
-        setBtcPrice(message.data[0].p); // latest price
-      }
-    };
+  // Calculate total value in investment plans
+  const investmentValue = investmentPlans?.reduce((total, plan) => {
+    return total + Number(plan.current_value);
+  }, 0) || 0;
 
-    ws.onerror = (err) => console.error("WebSocket error:", err);
-    ws.onclose = () => console.log("WebSocket closed");
+  // Add deposit balance to total
+  const depositBalance = balance ? Number(balance.deposit_balance) : 0;
 
-    return () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: "unsubscribe", symbol: SYMBOL }));
-      }
-      ws.close();
-    };
-  }, []);
+  // Total portfolio = wallets + investments + deposit balance
+  const totalBalance = walletsValue + investmentValue + depositBalance;
+
+  // Calculate profit (profit_balance from user_balances)
+  const profitBalance = balance ? Number(balance.profit_balance) : 0;
+  const initialInvestment = totalBalance - profitBalance;
+  const profitLossPercent = initialInvestment > 0 ? (profitBalance / initialInvestment) * 100 : 0;
+  const isProfit = profitBalance > 0;
 
   return (
     <Card className="shadow-card hover:shadow-glow transition-shadow duration-300">
@@ -95,7 +109,7 @@ const PortfolioCard: React.FC = () => {
             <span>
               {isProfit ? "+" : ""}
               {profitLossPercent.toFixed(2)}% ($
-              {Math.abs(profitLoss).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+              {Math.abs(profitBalance).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
             </span>
             <span className="text-muted-foreground">24h</span>
           </div>

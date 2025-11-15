@@ -14,6 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
+      coin_swaps: {
+        Row: {
+          created_at: string
+          exchange_rate: number
+          from_amount: number
+          from_symbol: string
+          from_wallet_id: string
+          id: string
+          status: string
+          to_amount: number
+          to_symbol: string
+          to_wallet_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exchange_rate: number
+          from_amount: number
+          from_symbol: string
+          from_wallet_id: string
+          id?: string
+          status?: string
+          to_amount: number
+          to_symbol: string
+          to_wallet_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exchange_rate?: number
+          from_amount?: number
+          from_symbol?: string
+          from_wallet_id?: string
+          id?: string
+          status?: string
+          to_amount?: number
+          to_symbol?: string
+          to_wallet_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      investment_plans: {
+        Row: {
+          amount: number
+          apy: number
+          created_at: string
+          current_value: number
+          id: string
+          last_gain_calculated: string | null
+          plan_type: string
+          start_date: string
+          status: string
+          term_months: number
+          unlock_date: string | null
+          updated_at: string
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          apy: number
+          created_at?: string
+          current_value?: number
+          id?: string
+          last_gain_calculated?: string | null
+          plan_type: string
+          start_date?: string
+          status?: string
+          term_months?: number
+          unlock_date?: string | null
+          updated_at?: string
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          apy?: number
+          created_at?: string
+          current_value?: number
+          id?: string
+          last_gain_calculated?: string | null
+          plan_type?: string
+          start_date?: string
+          status?: string
+          term_months?: number
+          unlock_date?: string | null
+          updated_at?: string
+          user_id?: string
+          wallet_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -80,6 +173,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_balances: {
+        Row: {
+          created_at: string
+          deposit_balance: number
+          id: string
+          profit_balance: number
+          total_bonus: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deposit_balance?: number
+          id?: string
+          profit_balance?: number
+          total_bonus?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deposit_balance?: number
+          id?: string
+          profit_balance?: number
+          total_bonus?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       wallets: {
         Row: {
           asset_name: string
@@ -118,7 +241,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_investment_gains: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
