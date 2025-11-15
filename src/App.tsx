@@ -31,6 +31,7 @@ const App = () => (
               <Route path="/markets" element={<ProtectedRoute><Markets /></ProtectedRoute>} />
               <Route path="/portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
               <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
               <Route path="/crypto/:id" element={<ProtectedRoute><CryptoDetail /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
