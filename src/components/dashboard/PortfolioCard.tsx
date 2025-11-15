@@ -1,7 +1,7 @@
-import { TrendingUp, TrendingDown, Eye, EyeOff } from "lucide-react";
+import { TrendingUp, TrendingDown, Eye, EyeOff, Bitcoin } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,8 +9,32 @@ import { useUserBalance } from "@/hooks/useUserBalance";
 
 const PortfolioCard: React.FC = () => {
   const [showBalance, setShowBalance] = useState(true);
+  const [btcPrice, setBtcPrice] = useState(96000); // Default fallback
   const { user } = useAuth();
   const { balance } = useUserBalance();
+
+  // Fetch real-time BTC price
+  useEffect(() => {
+    const ws = new WebSocket('wss://ws.finnhub.io?token=d4c5phhr01qoua32kvp0d4c5phhr01qoua32kvpg');
+    
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ type: 'subscribe', symbol: 'BINANCE:BTCUSDT' }));
+    };
+    
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === 'trade' && message.data && message.data.length > 0) {
+        setBtcPrice(message.data[0].p);
+      }
+    };
+    
+    return () => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'unsubscribe', symbol: 'BINANCE:BTCUSDT' }));
+      }
+      ws.close();
+    };
+  }, []);
 
   // Fetch all wallets
   const { data: wallets } = useQuery({
@@ -65,8 +89,11 @@ const PortfolioCard: React.FC = () => {
   // Add deposit balance to total
   const depositBalance = balance ? Number(balance.deposit_balance) : 0;
 
-  // Total portfolio = wallets + investments + deposit balance
-  const totalBalance = walletsValue + investmentValue + depositBalance;
+  // Total portfolio = wallets + investments (no more deposit_balance)
+  const totalBalance = walletsValue + investmentValue;
+
+  // Calculate Bitcoin equivalent
+  const btcEquivalent = totalBalance / btcPrice;
 
   // Calculate profit (profit_balance from user_balances)
   const profitBalance = balance ? Number(balance.profit_balance) : 0;
@@ -98,6 +125,14 @@ const PortfolioCard: React.FC = () => {
                 ? `$${totalBalance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                 : "••••••••"}
             </p>
+            <div className="flex items-center gap-2 mt-2">
+              <Bitcoin className="h-4 w-4 text-orange-500" />
+              <p className="text-sm text-muted-foreground">
+                {showBalance
+                  ? `≈ ${btcEquivalent.toFixed(8)} BTC`
+                  : "••••••••"}
+              </p>
+            </div>
           </div>
 
           <div
@@ -111,7 +146,7 @@ const PortfolioCard: React.FC = () => {
               {profitLossPercent.toFixed(2)}% ($
               {Math.abs(profitBalance).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
             </span>
-            <span className="text-muted-foreground">24h</span>
+            <span className="text-muted-foreground">Daily Gain</span>
           </div>
         </div>
       </CardContent>

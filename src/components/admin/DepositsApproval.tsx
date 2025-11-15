@@ -44,21 +44,39 @@ export function DepositsApproval() {
 
       if (txError) throw txError;
 
-      // Update user balance
-      const { data: balance } = await supabase
-        .from('user_balances')
-        .select('deposit_balance')
+      // Find or create user's wallet for this asset
+      let { data: wallet } = await supabase
+        .from('wallets')
+        .select('*')
         .eq('user_id', transaction.user_id)
+        .eq('asset_symbol', transaction.asset_symbol)
         .single();
 
-      const { error: balanceError } = await supabase
-        .from('user_balances')
-        .update({ 
-          deposit_balance: (balance?.deposit_balance || 0) + transaction.amount 
-        })
-        .eq('user_id', transaction.user_id);
+      if (!wallet) {
+        // Create wallet if it doesn't exist
+        const { data: newWallet, error: createError } = await supabase
+          .from('wallets')
+          .insert({
+            user_id: transaction.user_id,
+            asset_symbol: transaction.asset_symbol,
+            asset_name: transaction.asset_symbol, // You can improve this
+            balance: transaction.amount,
+          })
+          .select()
+          .single();
 
-      if (balanceError) throw balanceError;
+        if (createError) throw createError;
+      } else {
+        // Update existing wallet balance
+        const { error: walletError } = await supabase
+          .from('wallets')
+          .update({ 
+            balance: Number(wallet.balance) + transaction.amount 
+          })
+          .eq('id', wallet.id);
+
+        if (walletError) throw walletError;
+      }
 
       // Create notification
       await supabase.rpc('create_notification', {

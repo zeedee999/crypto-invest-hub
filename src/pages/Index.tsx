@@ -4,11 +4,12 @@ import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import PortfolioCard from "@/components/dashboard/PortfolioCard";
 import BalanceCard from "@/components/dashboard/BalanceCard";
+import InvestmentBalanceCard from "@/components/dashboard/InvestmentBalanceCard";
 import StockChart from "@/components/dashboard/StockChart";
 import MarketOverview from "@/components/dashboard/MarketOverview";
 import InvestmentProducts from "@/components/dashboard/InvestmentProducts";
 import QuickActions from "@/components/dashboard/QuickActions";
-import { DollarSign, Percent, Gift } from "lucide-react";
+import { Percent, Gift } from "lucide-react";
 import { CandlestickData } from "@/components/dashboard/StockChart";
 import { useUserBalance } from "@/hooks/useUserBalance";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -99,14 +100,10 @@ const Index: React.FC = () => {
   }, []);
 
   // Dashboard Values - from database
-  const depositBalance = balance ? Number(balance.deposit_balance) : 0;
   const profitBalance = balance ? Number(balance.profit_balance) : 0;
   const totalBonus = balance ? Number(balance.total_bonus) : 0;
 
   // Sparkline mock data
-  const sparkline1 = Array.from({ length: 20 }, () =>
-    Math.floor(Math.random() * 10000)
-  );
   const sparkline2 = Array.from({ length: 20 }, () =>
     Math.floor(Math.random() * 5000)
   );
@@ -125,20 +122,13 @@ const Index: React.FC = () => {
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-          <BalanceCard
-            title="Deposit Balance"
-            value={depositBalance}
-            icon={<DollarSign className="h-4 w-4 text-white" />}
-            chartData={sparkline1}
-            bgColor="bg-green-500"
-            textColor="text-white"
-          />
+          <InvestmentBalanceCard />
           <BalanceCard
             title="Profit Balance"
             value={profitBalance}
             icon={<Percent className="h-4 w-4 text-white" />}
             chartData={sparkline2}
-            bgColor="bg-red-500"
+            bgColor="bg-green-500"
             textColor="text-white"
           />
           <BalanceCard
