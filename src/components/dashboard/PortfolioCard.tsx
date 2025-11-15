@@ -242,21 +242,19 @@ const PortfolioCard: React.FC = () => {
     BNB: 936,
   };
 
-  // Total portfolio
-  const walletsValue =
+  // Calculate total portfolio value in USD
+  const totalBalanceUSD =
     wallets?.reduce((total, wallet) => {
       const price = cryptoPrices[wallet.asset_symbol] || 0;
       return total + Number(wallet.balance) * price;
     }, 0) || 0;
 
-  const totalBalance = walletsValue;
-
-  const btcEquivalent = totalBalance / btcPrice;
+  const btcEquivalent = totalBalanceUSD / btcPrice;
 
   const profitBalance = balance ? Number(balance.profit_balance) : 0;
-  const initialInvestment = totalBalance - profitBalance;
+  const depositBalance = balance ? Number(balance.deposit_balance) : 0;
   const profitLossPercent =
-    initialInvestment > 0 ? (profitBalance / initialInvestment) * 100 : 0;
+    depositBalance > 0 ? (profitBalance / depositBalance) * 100 : 0;
   const isProfit = profitBalance > 0;
 
   return (
@@ -280,7 +278,7 @@ const PortfolioCard: React.FC = () => {
         <div className="space-y-3">
           <p className="text-3xl font-bold">
             {showBalance
-              ? `$${totalBalance.toLocaleString("en-US", {
+              ? `$${totalBalanceUSD.toLocaleString("en-US", {
                   minimumFractionDigits: 2,
                 })}`
               : "••••••••"}
@@ -318,7 +316,8 @@ const PortfolioCard: React.FC = () => {
           <div className="grid grid-cols-2 gap-3 pt-4">
             {wallets?.map((wallet) => {
               const price = cryptoPrices[wallet.asset_symbol] || 0;
-              const value = Number(wallet.balance) * price;
+              const valueUSD = Number(wallet.balance) * price;
+              const btcEquiv = valueUSD / btcPrice;
               const Icon = ASSET_ICONS[wallet.asset_symbol] || Bitcoin;
 
               return (
@@ -335,9 +334,7 @@ const PortfolioCard: React.FC = () => {
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {showBalance
-                          ? `$${value.toLocaleString("en-US", {
-                              minimumFractionDigits: 2,
-                            })}`
+                          ? `≈ ${btcEquiv.toFixed(8)} BTC`
                           : "••••"}
                       </p>
                     </div>

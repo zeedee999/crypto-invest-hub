@@ -11,20 +11,28 @@ const InvestmentBalanceCard: React.FC = () => {
   const { data: investmentPlans } = useQuery({
     queryKey: ['investment-plans-dashboard', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: plans, error: plansError } = await supabase
         .from('investment_plans')
-        .select(`
-          *,
-          wallets (
-            asset_symbol,
-            asset_name
-          )
-        `)
+        .select('*')
         .eq('user_id', user?.id)
         .in('status', ['active', 'locked']);
       
-      if (error) throw error;
-      return data;
+      if (plansError) throw plansError;
+
+      const { data: wallets, error: walletsError } = await supabase
+        .from('wallets')
+        .select('id, asset_symbol, asset_name')
+        .eq('user_id', user?.id);
+      
+      if (walletsError) throw walletsError;
+
+      // Join wallets data with plans
+      const plansWithWallets = plans?.map(plan => ({
+        ...plan,
+        wallet: wallets?.find(w => w.id === plan.wallet_id)
+      }));
+
+      return plansWithWallets;
     },
     enabled: !!user,
   });
@@ -62,7 +70,7 @@ const InvestmentBalanceCard: React.FC = () => {
                     )}
                     <div>
                       <p className="text-sm font-medium">
-                        {(plan.wallets as any)?.asset_symbol || 'N/A'} {plan.plan_type}
+                        {(plan as any).wallet?.asset_symbol || 'N/A'} {plan.plan_type}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {plan.apy}% APY
