@@ -26,7 +26,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     <div className="min-h-screen bg-background">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col border-r border-border bg-card">
-        <div className="flex h-16 items-center justify-between border-b border-border px-6">
+        <div className="flex h-16 items-center border-b border-border px-6">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
               <TrendingUp className="h-5 w-5 text-primary-foreground" />
@@ -35,7 +35,6 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               CryptoVault
             </span>
           </div>
-          <NotificationBell />
         </div>
         
         <nav className="flex-1 space-y-1 px-3 py-4">
@@ -140,6 +139,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
       {/* Main Content */}
       <main className="lg:pl-64">
+        {/* Content Header */}
+        <header className="hidden lg:flex h-16 items-center justify-end border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 px-6">
+          <NotificationBell />
+        </header>
+        
         <div className="p-4 lg:p-8">
           {children}
         </div>
