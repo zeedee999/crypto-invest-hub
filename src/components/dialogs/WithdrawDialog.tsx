@@ -1,0 +1,127 @@
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowUpRight } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+
+const assets = [
+  { symbol: 'BTC', name: 'Bitcoin' },
+  { symbol: 'ETH', name: 'Ethereum' },
+  { symbol: 'USDT', name: 'Tether' },
+];
+
+export function WithdrawDialog() {
+  const { user } = useAuth();
+  const [selectedAsset, setSelectedAsset] = useState('');
+  const [address, setAddress] = useState('');
+  const [amount, setAmount] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const handleWithdraw = async () => {
+    if (!selectedAsset || !address || !amount || !user) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.from('transactions').insert({
+        user_id: user.id,
+        type: 'withdrawal',
+        asset_symbol: selectedAsset,
+        amount: parseFloat(amount),
+        status: 'pending',
+        notes: `Withdrawal to ${address}`,
+      });
+
+      if (error) throw error;
+
+      toast.success('Withdrawal request submitted');
+      setOpen(false);
+      setAddress('');
+      setAmount('');
+      setSelectedAsset('');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to submit withdrawal');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">
+          <ArrowUpRight className="h-4 w-4 mr-2" />
+          Withdraw
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Withdraw Crypto</DialogTitle>
+          <DialogDescription>
+            Send cryptocurrency to an external wallet
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label>Asset</Label>
+            <Select value={selectedAsset} onValueChange={setSelectedAsset}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose cryptocurrency" />
+              </SelectTrigger>
+              <SelectContent>
+                {assets.map((asset) => (
+                  <SelectItem key={asset.symbol} value={asset.symbol}>
+                    {asset.name} ({asset.symbol})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Wallet Address</Label>
+            <Input
+              placeholder="Enter destination address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Amount</Label>
+            <Input
+              type="number"
+              step="0.00000001"
+              placeholder="0.00"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </div>
+
+          <div className="text-sm text-muted-foreground space-y-1">
+            <p>⚠️ Important:</p>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Withdrawals are processed manually for security</li>
+              <li>Double-check the address before confirming</li>
+              <li>Network fees will be deducted from the amount</li>
+            </ul>
+          </div>
+
+          <Button onClick={handleWithdraw} className="w-full" disabled={loading}>
+            {loading ? 'Processing...' : 'Confirm Withdrawal'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

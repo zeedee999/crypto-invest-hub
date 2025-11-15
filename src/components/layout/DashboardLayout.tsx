@@ -1,8 +1,10 @@
 import { ReactNode } from "react";
-import { Menu, TrendingUp, Wallet, PieChart, Settings, LogOut } from "lucide-react";
+import { Menu, TrendingUp, Wallet, PieChart, Settings, LogOut, Moon, Sun, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { NavLink } from "@/components/NavLink";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -12,10 +14,13 @@ const navigationItems = [
   { name: "Dashboard", href: "/", icon: PieChart },
   { name: "Markets", href: "/markets", icon: TrendingUp },
   { name: "Portfolio", href: "/portfolio", icon: Wallet },
-  { name: "Invest", href: "/invest", icon: TrendingUp },
+  { name: "Transactions", href: "/transactions", icon: History },
 ];
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+  const { signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  
   return (
     <div className="min-h-screen bg-background">
       {/* Desktop Sidebar */}
@@ -44,11 +49,19 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         </nav>
 
         <div className="border-t border-border p-3 space-y-1">
-          <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground">
-            <Settings className="h-5 w-5" />
-            Settings
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+            onClick={toggleTheme}
+          >
+            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
           </Button>
-          <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+            onClick={signOut}
+          >
             <LogOut className="h-5 w-5" />
             Logout
           </Button>
@@ -97,11 +110,19 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </nav>
 
             <div className="border-t border-border p-3 space-y-1">
-              <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground">
-                <Settings className="h-5 w-5" />
-                Settings
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+                onClick={toggleTheme}
+              >
+                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
               </Button>
-              <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground">
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+                onClick={signOut}
+              >
                 <LogOut className="h-5 w-5" />
                 Logout
               </Button>
