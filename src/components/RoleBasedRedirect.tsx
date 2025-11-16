@@ -16,7 +16,7 @@ export function RoleBasedRedirect() {
         if (isAdmin) {
           navigate('/admin', { replace: true });
         } else {
-          navigate('/', { replace: true });
+          navigate('/dashboard', { replace: true });
         }
       }
     }
