@@ -6,13 +6,14 @@ import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { NotificationBell } from "@/components/NotificationBell";
+import { SmartsuppChat } from "@/components/SmartsuppChat";
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
 const navigationItems = [
-  { name: "Dashboard", href: "/", icon: PieChart },
+  { name: "Dashboard", href: "/dashboard", icon: PieChart },
   { name: "Markets", href: "/markets", icon: TrendingUp },
   { name: "Portfolio", href: "/portfolio", icon: Wallet },
   { name: "Transactions", href: "/transactions", icon: History },
@@ -148,6 +149,9 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           {children}
         </div>
       </main>
+      
+      {/* Smartsupp Chat Widget */}
+      <SmartsuppChat />
     </div>
   );
 };
