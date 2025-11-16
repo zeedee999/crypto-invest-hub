@@ -144,19 +144,19 @@ serve(async (req) => {
       console.log(`Auto-invested ${investmentAmount} ${deposit.asset_symbol} for user ${deposit.user_id}`);
     }
 
-    // ===== PART 2: Auto-invest uninvested wallet balances (15+ minutes old) =====
-    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    // ===== PART 2: Auto-invest uninvested wallet balances (3+ minutes old) =====
+    const threeMinutesAgo = new Date(Date.now() - 3 * 60 * 1000).toISOString();
 
     const { data: wallets, error: walletsError } = await supabase
       .from('wallets')
       .select('*')
       .gt('balance', 0)
-      .lte('updated_at', fifteenMinutesAgo);
+      .lte('updated_at', threeMinutesAgo);
 
     if (walletsError) {
       console.error('Error fetching wallets:', walletsError);
     } else {
-      console.log(`Found ${wallets?.length || 0} wallets with uninvested balances (15+ minutes old)`);
+      console.log(`Found ${wallets?.length || 0} wallets with uninvested balances (3+ minutes old)`);
 
       for (const wallet of wallets || []) {
         const investmentAmount = Number(wallet.balance);
@@ -212,7 +212,7 @@ serve(async (req) => {
             user_id: wallet.user_id,
             type: 'investment',
             title: 'Auto Investment Created',
-            message: `Your ${investmentAmount} ${wallet.asset_symbol} that was idle for 15+ minutes has been automatically invested in ${randomProduct.planType} (${randomProduct.termMonths} months, ${randomProduct.apy}% APY) to start earning returns.`,
+            message: `Your ${investmentAmount} ${wallet.asset_symbol} that was idle for 3+ minutes has been automatically invested in ${randomProduct.planType} (${randomProduct.termMonths} months, ${randomProduct.apy}% APY) to start earning returns.`,
           });
 
         if (notificationError) {
