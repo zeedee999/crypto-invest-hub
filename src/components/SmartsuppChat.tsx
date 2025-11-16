@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 declare global {
   interface Window {
@@ -11,61 +11,51 @@ export function SmartsuppChat() {
   const [isEnabled, setIsEnabled] = useState(true);
 
   useEffect(() => {
-    // Check if chat is enabled in localStorage
-    const chatPref = localStorage.getItem('chatWidgetEnabled');
-    const enabled = chatPref === null ? true : chatPref === 'true';
-    setIsEnabled(enabled);
+    // Chat preference
+    const pref = localStorage.getItem("chatWidgetEnabled");
+    setIsEnabled(pref === null ? true : pref === "true");
 
-    // Listen for toggle events
     const handleToggle = (event: CustomEvent) => {
       setIsEnabled(event.detail.enabled);
     };
 
-    window.addEventListener('chatWidgetToggle', handleToggle as EventListener);
+    window.addEventListener("chatWidgetToggle", handleToggle as EventListener);
 
-    return () => {
-      window.removeEventListener('chatWidgetToggle', handleToggle as EventListener);
-    };
+    return () =>
+      window.removeEventListener(
+        "chatWidgetToggle",
+        handleToggle as EventListener
+      );
   }, []);
 
   useEffect(() => {
-    // Initialize Smartsupp configuration
+    // Set smartsupp key
     window._smartsupp = window._smartsupp || {};
-    window._smartsupp.key = '549cec4f199f2304cb12feea3f1454ad8bb7a602';
+    window._smartsupp.key = "549cec4f199f2304cb12feea3f1454ad8bb7a602";
 
     if (!isEnabled) {
-      // Hide the widget if disabled
-      if (window.smartsupp) {
-        window.smartsupp('chat:hide');
-      }
+      window.smartsupp?.("chat:hide");
       return;
     }
 
-    // Show the widget if enabled
-    if (window.smartsupp) {
-      window.smartsupp('chat:show');
-      return;
+    // --- REQUIRED BOOTSTRAP (YOU MISSED THIS PART) ---
+    if (!window.smartsupp) {
+      const s = document.getElementsByTagName("script")[0];
+      const c = document.createElement("script");
+
+      window.smartsupp = function () {
+        (window.smartsupp._ = window.smartsupp._ || []).push(arguments);
+      };
+
+      c.type = "text/javascript";
+      c.charset = "utf-8";
+      c.async = true;
+      c.src = "https://www.smartsuppchat.com/loader.js?";
+      s.parentNode?.insertBefore(c, s);
     }
 
-    // Load Smartsupp script only once
-    const existingScript = document.querySelector('script[src*="smartsupp.com"]');
-    if (existingScript) {
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.async = true;
-    script.src = 'https://www.smartsuppchat.com/loader.js';
-    
-    document.head.appendChild(script);
-
-    return () => {
-      // Only hide widget on unmount, don't remove script
-      if (window.smartsupp) {
-        window.smartsupp('chat:hide');
-      }
-    };
+    // show widget
+    window.smartsupp("chat:show");
   }, [isEnabled]);
 
   return null;
