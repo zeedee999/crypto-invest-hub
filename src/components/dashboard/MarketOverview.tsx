@@ -28,7 +28,7 @@ const MarketOverview: React.FC = () => {
     try {
       const ids = cryptos.map(c => c.id).join(",");
       const res = await fetch(
-        `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}`
+        `/api/v3/coins/markets?vs_currency=usd&ids=${ids}`
       );
       const data = await res.json();
 
