@@ -14,9 +14,23 @@ import krakenLogo from "@/assets/partners/kraken-logo.png";
 import geminiLogo from "@/assets/partners/gemini-logo.png";
 import bitfinexLogo from "@/assets/partners/bitfinex-logo.png";
 import huobiLogo from "@/assets/partners/huobi-logo.png";
+import sarahJohnson from "@/assets/testimonials/sarah-johnson.jpg";
+import michaelChen from "@/assets/testimonials/michael-chen.jpg";
+import emmaWilliams from "@/assets/testimonials/emma-williams.jpg";
+import davidMartinez from "@/assets/testimonials/david-martinez.jpg";
+import lisaAnderson from "@/assets/testimonials/lisa-anderson.jpg";
+import jamesThompson from "@/assets/testimonials/james-thompson.jpg";
+import rachelKim from "@/assets/testimonials/rachel-kim.jpg";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
+import { useRef } from "react";
 
 export default function Landing() {
   const navigate = useNavigate();
+  
+  const autoplayPlugin = useRef(
+    Autoplay({ delay: 3000, stopOnInteraction: true })
+  );
 
   const plans = [
     {
@@ -63,19 +77,43 @@ export default function Landing() {
       name: "Sarah Johnson",
       role: "Professional Trader",
       content: "CryptoVaultageFx transformed my trading experience. The automated investment features and real-time analytics helped me grow my portfolio by 240% in just 6 months.",
-      avatar: "SJ",
+      image: sarahJohnson,
     },
     {
       name: "Michael Chen",
       role: "Crypto Investor",
       content: "The platform's security features and expert support team gave me the confidence to invest more. Best decision I've made for my financial future.",
-      avatar: "MC",
+      image: michaelChen,
     },
     {
       name: "Emma Williams",
       role: "Day Trader",
       content: "I've tried many platforms, but none compare to the speed and reliability of CryptoVaultageFx. Their market insights are invaluable.",
-      avatar: "EW",
+      image: emmaWilliams,
+    },
+    {
+      name: "David Martinez",
+      role: "Crypto Investor",
+      content: "The copy trading feature is a game-changer. I'm following top traders and seeing consistent profits every month. Highly recommend!",
+      image: davidMartinez,
+    },
+    {
+      name: "Lisa Anderson",
+      role: "Financial Advisor",
+      content: "As a financial advisor, I recommend CryptoVaultageFx to my clients. The platform's transparency and educational resources are outstanding.",
+      image: lisaAnderson,
+    },
+    {
+      name: "James Thompson",
+      role: "Forex Trader",
+      content: "Switched from forex to crypto with CryptoVaultageFx. The transition was seamless, and I'm now earning more than ever before.",
+      image: jamesThompson,
+    },
+    {
+      name: "Rachel Kim",
+      role: "Investment Specialist",
+      content: "The ETF and index trading options are excellent. CryptoVaultageFx offers everything I need in one platform with competitive fees.",
+      image: rachelKim,
     },
   ];
 
@@ -435,22 +473,37 @@ export default function Landing() {
           <p className="text-center text-muted-foreground mb-16">
             Real stories from real traders who transformed their financial future
           </p>
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial) => (
-              <Card key={testimonial.name} className="p-6 space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-card-foreground">{testimonial.name}</h4>
-                    <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                  </div>
-                </div>
-                <p className="text-muted-foreground italic">"{testimonial.content}"</p>
-              </Card>
-            ))}
-          </div>
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            plugins={[autoplayPlugin.current]}
+            className="w-full"
+          >
+            <CarouselContent>
+              {testimonials.map((testimonial) => (
+                <CarouselItem key={testimonial.name} className="md:basis-1/2 lg:basis-1/3">
+                  <Card className="p-6 space-y-4 h-full">
+                    <div className="flex items-center gap-4">
+                      <img 
+                        src={testimonial.image} 
+                        alt={testimonial.name}
+                        className="h-16 w-16 rounded-full object-cover border-2 border-primary/20"
+                      />
+                      <div>
+                        <h4 className="font-semibold text-card-foreground">{testimonial.name}</h4>
+                        <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground italic">"{testimonial.content}"</p>
+                  </Card>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="hidden md:flex" />
+            <CarouselNext className="hidden md:flex" />
+          </Carousel>
         </div>
       </section>
 
