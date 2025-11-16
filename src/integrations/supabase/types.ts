@@ -175,6 +175,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          chat_enabled: boolean | null
           created_at: string | null
           email: string | null
           full_name: string | null
@@ -184,6 +185,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          chat_enabled?: boolean | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
@@ -193,6 +195,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          chat_enabled?: boolean | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null

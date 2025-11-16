@@ -7,35 +7,69 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Settings as SettingsIcon, MessageSquare, Moon, Sun, Bell } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Settings() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [chatEnabled, setChatEnabled] = useState(true);
   const [notifications, setNotifications] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load chat preference from localStorage
-    const savedChatPref = localStorage.getItem('chatWidgetEnabled');
-    if (savedChatPref !== null) {
-      setChatEnabled(savedChatPref === 'true');
-    }
+    const loadPreferences = async () => {
+      if (!user) return;
+      
+      try {
+        // Load chat preference from database
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('chat_enabled')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile) {
+          setChatEnabled(profile.chat_enabled ?? true);
+        }
 
-    // Load notifications preference
-    const savedNotifPref = localStorage.getItem('notificationsEnabled');
-    if (savedNotifPref !== null) {
-      setNotifications(savedNotifPref === 'true');
-    }
-  }, []);
+        // Load notifications preference from localStorage
+        const savedNotifPref = localStorage.getItem('notificationsEnabled');
+        if (savedNotifPref !== null) {
+          setNotifications(savedNotifPref === 'true');
+        }
+      } catch (error) {
+        console.error('Error loading preferences:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleChatToggle = (enabled: boolean) => {
+    loadPreferences();
+  }, [user]);
+
+  const handleChatToggle = async (enabled: boolean) => {
+    if (!user) return;
+    
     setChatEnabled(enabled);
-    localStorage.setItem('chatWidgetEnabled', String(enabled));
     
-    // Dispatch custom event to notify SmartsuppChat component
-    window.dispatchEvent(new CustomEvent('chatWidgetToggle', { detail: { enabled } }));
-    
-    toast.success(enabled ? 'Chat widget enabled' : 'Chat widget disabled');
+    try {
+      // Save to database
+      const { error } = await supabase
+        .from('profiles')
+        .update({ chat_enabled: enabled })
+        .eq('id', user.id);
+
+      if (error) throw error;
+      
+      // Dispatch custom event to notify SmartsuppChat component
+      window.dispatchEvent(new CustomEvent('chatWidgetToggle', { detail: { enabled } }));
+      
+      toast.success(enabled ? 'Chat widget enabled' : 'Chat widget disabled');
+    } catch (error) {
+      console.error('Error updating chat preference:', error);
+      toast.error('Failed to update chat preference');
+      setChatEnabled(!enabled); // Revert on error
+    }
   };
 
   const handleNotificationsToggle = (enabled: boolean) => {
