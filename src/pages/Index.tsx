@@ -40,15 +40,17 @@ const processFinnhubQuote = (
   const trades = message.data;
   const now = Date.now();
   const currentMinute = Math.floor(now / 60000) * 60000;
-  const latestPrice = trades[0].p;
+  // Round price to 2 decimal places to prevent floating point precision errors
+  const latestPrice = Math.round(trades[0].p * 100) / 100;
 
   const latestCandles = currentCandles[0]?.data || [];
   const lastCandle = latestCandles[latestCandles.length - 1];
 
   if (lastCandle && lastCandle[0] === currentMinute) {
     const [timestamp, [open, high, low, close]] = lastCandle;
-    const updatedHigh = Math.max(high, latestPrice);
-    const updatedLow = Math.min(low, latestPrice);
+    // Round all OHLC values to prevent precision errors
+    const updatedHigh = Math.round(Math.max(high, latestPrice) * 100) / 100;
+    const updatedLow = Math.round(Math.min(low, latestPrice) * 100) / 100;
     const updatedCandle: [number, number[]] = [
       timestamp,
       [open, updatedHigh, updatedLow, latestPrice],
