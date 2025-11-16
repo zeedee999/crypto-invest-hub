@@ -17,6 +17,7 @@ const navigationItems = [
   { name: "Markets", href: "/markets", icon: TrendingUp },
   { name: "Portfolio", href: "/portfolio", icon: Wallet },
   { name: "Transactions", href: "/transactions", icon: History },
+  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {

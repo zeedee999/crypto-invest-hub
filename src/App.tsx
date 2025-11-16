@@ -16,6 +16,7 @@ import AdminAuth from "./pages/AdminAuth";
 import Markets from "./pages/Markets";
 import Portfolio from "./pages/Portfolio";
 import Transactions from "./pages/Transactions";
+import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
 import AdminTransactions from "./pages/AdminTransactions";
 import AdminSettings from "./pages/AdminSettings";
@@ -42,6 +43,7 @@ function App() {
                 <Route path="/markets" element={<ProtectedRoute><Markets /></ProtectedRoute>} />
                 <Route path="/portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
                 <Route path="/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                 <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
                 <Route path="/admin/transactions" element={<AdminRoute><AdminTransactions /></AdminRoute>} />
                 <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
