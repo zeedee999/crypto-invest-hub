@@ -1,11 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { TrendingUp, Shield, Zap, Globe, ArrowRight, CheckCircle2, Users, Award, HeadphonesIcon, ChevronDown } from "lucide-react";
+import { TrendingUp, Shield, Globe, ArrowRight, CheckCircle2, Users, Award, HeadphonesIcon, Copy, BarChart3, DollarSign, PieChart, Activity, Mail, Phone, MapPin, FileCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import cryptoHero from "@/assets/crypto-hero.jpg";
 import tradingFloor from "@/assets/trading-floor.jpg";
 import expertTeam from "@/assets/expert-team.jpg";
+import binanceLogo from "@/assets/partners/binance-logo.png";
+import coinbaseLogo from "@/assets/partners/coinbase-logo.png";
+import krakenLogo from "@/assets/partners/kraken-logo.png";
+import geminiLogo from "@/assets/partners/gemini-logo.png";
+import bitfinexLogo from "@/assets/partners/bitfinex-logo.png";
+import huobiLogo from "@/assets/partners/huobi-logo.png";
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -94,8 +102,53 @@ export default function Landing() {
     },
   ];
 
+  const services = [
+    {
+      title: "Copy Trading",
+      description: "Copy trading allows you to directly copy the positions taken by another trader. You simply copy everything.",
+      icon: Copy,
+    },
+    {
+      title: "Financial Advisory",
+      description: "We offer financial advice leading to smart trading by automating processes and improving decision-making.",
+      icon: BarChart3,
+    },
+    {
+      title: "Forex Trading",
+      description: "Foreign Exchange Market, a global decentralized market for the trading of currencies.",
+      icon: DollarSign,
+    },
+    {
+      title: "Index Trading",
+      description: "The ROI rates as high as up to 41%. Indices contains about 0.24%, thus is rated as a sweet spot.",
+      icon: TrendingUp,
+    },
+    {
+      title: "ETF Stocks",
+      description: "Buy stocks, commodities, bonds, and other securities and place them where they will grow.",
+      icon: PieChart,
+    },
+    {
+      title: "CFDs",
+      description: "Trade directly on CFDs without stress. You don't need a digital wallet or an account with an exchange.",
+      icon: Activity,
+    },
+  ];
+
   const partners = [
-    "Binance", "Coinbase", "Kraken", "Gemini", "Bitfinex", "Huobi"
+    { name: "Binance", logo: binanceLogo },
+    { name: "Coinbase", logo: coinbaseLogo },
+    { name: "Kraken", logo: krakenLogo },
+    { name: "Gemini", logo: geminiLogo },
+    { name: "Bitfinex", logo: bitfinexLogo },
+    { name: "Huobi", logo: huobiLogo },
+  ];
+
+  const licenses = [
+    "Financial Conduct Authority (FCA) - UK",
+    "Securities and Exchange Commission (SEC) - USA",
+    "Australian Securities and Investments Commission (ASIC)",
+    "Cyprus Securities and Exchange Commission (CySEC)",
   ];
 
   return (
@@ -125,9 +178,14 @@ export default function Landing() {
             <TrendingUp className="h-6 w-6 text-primary" />
             <h1 className="text-xl font-bold text-foreground">CryptoVaultageFx</h1>
           </div>
-          <Button onClick={() => navigate('/auth')}>
-            Login
-          </Button>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => navigate('/auth')}>
+              Login
+            </Button>
+            <Button onClick={() => navigate('/auth')}>
+              Sign Up
+            </Button>
+          </div>
         </div>
       </nav>
 
@@ -163,6 +221,28 @@ export default function Landing() {
               </Button>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Experience Section */}
+      <section className="container mx-auto px-4 py-20 border-t border-border/40">
+        <div className="max-w-5xl mx-auto">
+          <Card className="p-12 bg-gradient-to-br from-primary/10 via-primary/5 to-background border-primary/20 shadow-xl">
+            <div className="space-y-6 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground">
+                We Have 10+ Years of Experience in Standard Professional Services
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                A platform that allows novice traders to copy/mirror professional traders' positions. We create all of the materials to assist you in growing and progressing to the next level. We're delighted you came across Our Company.
+              </p>
+              <p className="text-muted-foreground">
+                Don't pass up this chance to hear about what we do and the incredible team that makes it all possible!
+              </p>
+              <Button size="lg" onClick={() => navigate('/auth')} className="gap-2">
+                Learn More <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </Card>
         </div>
       </section>
 
@@ -223,9 +303,34 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Services Section */}
+      <section className="container mx-auto px-4 py-20 border-t border-border/40">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+              Services We Offer
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              We offer world class services around - Check out some of our services below
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {services.map((service) => (
+              <Card key={service.title} className="p-8 space-y-4 hover:border-primary/50 transition-all hover:shadow-2xl hover:scale-105 bg-gradient-to-br from-card to-card/50 backdrop-blur">
+                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
+                  <service.icon className="h-8 w-8 text-primary-foreground" />
+                </div>
+                <h3 className="text-xl font-bold text-card-foreground">{service.title}</h3>
+                <p className="text-muted-foreground leading-relaxed">{service.description}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Trading Floor Image Section */}
       <section className="container mx-auto px-4 py-20">
-        <div className="max-w-6xl mx-auto rounded-2xl overflow-hidden border border-border/40">
+        <div className="max-w-6xl mx-auto rounded-2xl overflow-hidden border border-border/40 shadow-2xl">
           <img src={tradingFloor} alt="Professional Trading Floor" className="w-full h-[400px] object-cover" />
         </div>
       </section>
@@ -360,10 +465,73 @@ export default function Landing() {
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center">
             {partners.map((partner) => (
-              <div key={partner} className="p-4 border border-border/40 rounded-lg hover:border-primary/50 transition-colors">
-                <p className="font-semibold text-foreground">{partner}</p>
-              </div>
+              <Card key={partner.name} className="p-6 hover:border-primary/50 transition-all hover:shadow-xl hover:scale-105 bg-gradient-to-br from-card to-card/80">
+                <img src={partner.logo} alt={`${partner.name} logo`} className="w-full h-20 object-contain" />
+              </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* About Us Section */}
+      <section id="about" className="container mx-auto px-4 py-20 border-t border-border/40">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground">
+                About CryptoVaultageFx
+              </h2>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Founded with a vision to democratize cryptocurrency trading, CryptoVaultageFx has grown to become a trusted platform serving thousands of traders worldwide.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                Our mission is to provide cutting-edge trading tools, expert guidance, and a secure environment for both novice and experienced traders. With over a decade of experience in financial markets and blockchain technology, we combine innovation with reliability.
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <Card className="p-6 text-center bg-gradient-to-br from-primary/10 to-primary/5">
+                  <h4 className="text-3xl font-bold text-primary">50K+</h4>
+                  <p className="text-sm text-muted-foreground mt-2">Active Traders</p>
+                </Card>
+                <Card className="p-6 text-center bg-gradient-to-br from-primary/10 to-primary/5">
+                  <h4 className="text-3xl font-bold text-primary">150+</h4>
+                  <p className="text-sm text-muted-foreground mt-2">Countries</p>
+                </Card>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent rounded-2xl blur-3xl"></div>
+              <Card className="relative p-8 space-y-6 bg-gradient-to-br from-card to-card/80 backdrop-blur">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Shield className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-1">Security First</h4>
+                      <p className="text-sm text-muted-foreground">Bank-grade security with multi-layer encryption</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Users className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-1">Expert Team</h4>
+                      <p className="text-sm text-muted-foreground">Seasoned professionals with decades of experience</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <TrendingUp className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground mb-1">Proven Results</h4>
+                      <p className="text-sm text-muted-foreground">Consistent returns and satisfied clients</p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
@@ -392,9 +560,98 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Contact Section */}
+      <section id="contact" className="container mx-auto px-4 py-20 border-t border-border/40">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+              Get In Touch
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Have questions? Our team is here to help you succeed
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-12">
+            <div className="space-y-8">
+              <Card className="p-6 flex items-start gap-4 hover:border-primary/50 transition-all">
+                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Mail className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground mb-1">Email Us</h4>
+                  <p className="text-muted-foreground">support@cryptovaultagefx.com</p>
+                </div>
+              </Card>
+              <Card className="p-6 flex items-start gap-4 hover:border-primary/50 transition-all">
+                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Phone className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground mb-1">Call Us</h4>
+                  <p className="text-muted-foreground">+1 (555) 123-4567</p>
+                </div>
+              </Card>
+              <Card className="p-6 flex items-start gap-4 hover:border-primary/50 transition-all">
+                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground mb-1">Visit Us</h4>
+                  <p className="text-muted-foreground">123 Trading Street, Financial District, NY 10004</p>
+                </div>
+              </Card>
+            </div>
+            <Card className="p-8 bg-gradient-to-br from-card to-card/80 backdrop-blur">
+              <form className="space-y-6">
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Name</label>
+                  <Input placeholder="Your name" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Email</label>
+                  <Input type="email" placeholder="your@email.com" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Message</label>
+                  <Textarea placeholder="Tell us how we can help..." rows={5} />
+                </div>
+                <Button className="w-full" size="lg">
+                  Send Message
+                </Button>
+              </form>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Licenses Section */}
+      <section className="container mx-auto px-4 py-20 border-t border-border/40">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="mb-12">
+            <FileCheck className="h-16 w-16 text-primary mx-auto mb-4" />
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+              Licensed & Regulated
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              We operate under strict regulatory compliance to ensure your investments are protected
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6">
+            {licenses.map((license) => (
+              <Card key={license} className="p-6 hover:border-primary/50 transition-all hover:shadow-xl bg-gradient-to-br from-card to-card/80">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="h-6 w-6 text-green-500 flex-shrink-0" />
+                  <p className="font-semibold text-foreground text-left">{license}</p>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20 border-t border-border/40">
-        <div className="max-w-3xl mx-auto text-center space-y-6 p-12 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+        <div className="max-w-3xl mx-auto text-center space-y-6 p-12 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 shadow-2xl">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground">
             Ready to Start Trading?
           </h2>
@@ -415,7 +672,7 @@ export default function Landing() {
       <footer className="border-t border-border/40 mt-20">
         <div className="container mx-auto px-4 py-8">
           <p className="text-center text-muted-foreground">
-            © 2024 CryptoVaultageFx. All rights reserved.
+            © 2025 CryptoVaultageFx. All rights reserved.
           </p>
         </div>
       </footer>
