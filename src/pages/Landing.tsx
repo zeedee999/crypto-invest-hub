@@ -35,8 +35,8 @@ export default function Landing() {
   const plans = [
     {
       name: "Starter Plan",
-      price: "$500",
-      minDeposit: "Min: $500",
+      price: "$1000",
+      minDeposit: "Min: $1000",
       features: [
         "Basic Trading Tools",
         "Market Analysis",
