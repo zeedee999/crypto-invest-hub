@@ -39,7 +39,7 @@ export default function Markets() {
   const fetchPrices = async () => {
     try {
       const ids = cryptos.map(c => c.id).join(',');
-      const res = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}`);
+      const res = await fetch(`/api/v3/coins/markets?vs_currency=usd&ids=${ids}`);
       const data = await res.json();
 
       const updated = cryptos.map(c => {

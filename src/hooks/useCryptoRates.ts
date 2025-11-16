@@ -34,7 +34,7 @@ export function useCryptoRates() {
       try {
         const ids = Object.values(COINGECKO_IDS).join(',');
         const response = await fetch(
-          `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`
+          `/api/v3/simple/price?ids=${ids}&vs_currencies=usd`
         );
 
         if (!response.ok) {
@@ -73,7 +73,7 @@ export function useCryptoMarketData() {
     queryFn: async (): Promise<CryptoMarketData[]> => {
       try {
         const response = await fetch(
-          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h,7d'
+          '/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h,7d'
         );
 
         if (!response.ok) {
