@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { NotificationBell } from "@/components/NotificationBell";
 import { SmartsuppChat } from "@/components/SmartsuppChat";
+import { useNavigate } from "react-router-dom";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -23,6 +24,12 @@ const navigationItems = [
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
   
   return (
     <div className="min-h-screen bg-background">
@@ -65,7 +72,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <Button 
             variant="ghost" 
             className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
-            onClick={signOut}
+            onClick={handleSignOut}
           >
             <LogOut className="h-5 w-5" />
             Logout
@@ -128,7 +135,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <Button
                 variant="ghost" 
                 className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
-                onClick={signOut}
+                onClick={handleSignOut}
               >
                 <LogOut className="h-5 w-5" />
                 Logout
