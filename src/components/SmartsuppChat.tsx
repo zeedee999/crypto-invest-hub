@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
 
+declare global {
+  interface Window {
+    smartsupp?: any;
+    _smartsupp?: any;
+  }
+}
+
 export function SmartsuppChat() {
   const [isEnabled, setIsEnabled] = useState(true);
 
@@ -22,33 +29,41 @@ export function SmartsuppChat() {
   }, []);
 
   useEffect(() => {
+    // Initialize Smartsupp configuration
+    window._smartsupp = window._smartsupp || {};
+    window._smartsupp.key = '549cec4f199f2304cb12feea3f1454ad8bb7a602';
+
     if (!isEnabled) {
-      // Remove Smartsupp elements if chat is disabled
-      const smartsuppWidget = document.querySelector('#smartsupp-widget-container');
-      if (smartsuppWidget) {
-        smartsuppWidget.remove();
+      // Hide the widget if disabled
+      if (window.smartsupp) {
+        window.smartsupp('chat:hide');
       }
       return;
     }
 
-    // Load Smartsupp chat widget only if enabled
+    // Show the widget if enabled
+    if (window.smartsupp) {
+      window.smartsupp('chat:show');
+      return;
+    }
+
+    // Load Smartsupp script only once
+    const existingScript = document.querySelector('script[src*="smartsupp.com"]');
+    if (existingScript) {
+      return;
+    }
+
     const script = document.createElement('script');
     script.type = 'text/javascript';
     script.async = true;
-    script.src = 'https://widget-page.smartsupp.com/widget/549cec4f199f2304cb12feea3f1454ad8bb7a602';
+    script.src = 'https://www.smartsuppchat.com/loader.js';
     
     document.head.appendChild(script);
 
     return () => {
-      // Cleanup: remove script when component unmounts or is disabled
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
-      }
-      
-      // Remove Smartsupp elements if they exist
-      const smartsuppWidget = document.querySelector('#smartsupp-widget-container');
-      if (smartsuppWidget) {
-        smartsuppWidget.remove();
+      // Only hide widget on unmount, don't remove script
+      if (window.smartsupp) {
+        window.smartsupp('chat:hide');
       }
     };
   }, [isEnabled]);
