@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 declare global {
   interface Window {
@@ -8,12 +10,34 @@ declare global {
 }
 
 export function SmartsuppChat() {
+  const { user } = useAuth();
   const [isEnabled, setIsEnabled] = useState(true);
 
   useEffect(() => {
-    // Chat preference
-    const pref = localStorage.getItem("chatWidgetEnabled");
-    setIsEnabled(pref === null ? true : pref === "true");
+    const loadChatPreference = async () => {
+      if (!user) {
+        setIsEnabled(true);
+        return;
+      }
+
+      try {
+        // Load from database for logged-in users
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("chat_enabled")
+          .eq("id", user.id)
+          .single();
+
+        if (profile) {
+          setIsEnabled(profile.chat_enabled ?? true);
+        }
+      } catch (error) {
+        console.error("Error loading chat preference:", error);
+        setIsEnabled(true);
+      }
+    };
+
+    loadChatPreference();
 
     const handleToggle = (event: CustomEvent) => {
       setIsEnabled(event.detail.enabled);
@@ -26,7 +50,7 @@ export function SmartsuppChat() {
         "chatWidgetToggle",
         handleToggle as EventListener
       );
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     // Set smartsupp key
